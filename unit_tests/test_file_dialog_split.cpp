@@ -1,5 +1,6 @@
 #include <QtTest/QtTest>
 #include <QTemporaryDir>
+#include "blfhandler.h"
 #include "framefileio.h"
 #include "dbc/dbchandler.h"
 
@@ -19,6 +20,7 @@ private slots:
     void testLogAutodetect();
     void testLogBadIndex();
     void testCANDOFile();
+    void testBLFRejectsOversizedContainer();
     void testMicrochipBadLengths();
     void testWiresharkBadLengths();
     void testWiresharkLongRecords();
@@ -265,6 +267,47 @@ void TestFileDialogSplit::testCANDOFile()
 
     // Vehicle Spy files can't be saved
     QVERIFY(!FrameFileIO::saveVehicleSpyFile(dir.filePath("spy.csv"), &frames));
+}
+
+void TestFileDialogSplit::testBLFRejectsOversizedContainer()
+{
+    QByteArray fileData(144, '\0');
+    fileData[0] = 'L';
+    fileData[1] = 'O';
+    fileData[2] = 'G';
+    fileData[3] = 'G';
+
+    auto appendU16 = [](QByteArray &data, quint16 value) {
+        data.append(char(value & 0xFF));
+        data.append(char((value >> 8) & 0xFF));
+    };
+    auto appendU32 = [&appendU16](QByteArray &data, quint32 value) {
+        appendU16(data, quint16(value & 0xFFFF));
+        appendU16(data, quint16(value >> 16));
+    };
+
+    QByteArray object;
+    appendU32(object, 0x4A424F4C);
+    appendU16(object, 16);
+    appendU16(object, 1);
+    appendU32(object, 32);
+    appendU32(object, BLF_CONTAINER);
+    appendU16(object, BLF_CONT_ZLIB_COMPRESSION);
+    object.append(QByteArray(6, '\0'));
+    appendU32(object, 0xFFFFFFFF);
+    object.append(QByteArray(4, '\0'));
+    fileData.append(object);
+
+    QTemporaryFile file;
+    QVERIFY(file.open());
+    QCOMPARE(file.write(fileData), qint64(fileData.size()));
+    const QString filename = file.fileName();
+    file.close();
+
+    QVector<CommFrame> frames;
+    BLFHandler handler;
+    QVERIFY(!handler.loadBLF(filename, &frames));
+    QVERIFY(frames.isEmpty());
 }
 
 // Microchip lines whose byte count doesn't match the bytes given: no more than 8, and no more than the line has

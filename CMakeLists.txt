@@ -256,34 +256,6 @@ install(TARGETS SavvyCAN
 )
 
 if(BUILD_TESTS)
-    find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS Test)
-    qt_add_executable(SavvyCAN_tests
-        test/main.cpp
-        test/tst_lfqueue.cpp test/tst_lfqueue.h
-        test/tst_cancon.cpp test/tst_cancon.h
-        connections/canconfactory.cpp connections/canconfactory.h
-        connections/canconnection.cpp connections/canconnection.h
-        connections/gvretserial.cpp connections/gvretserial.h
-        connections/socketcand.cpp connections/socketcand.h
-        connections/canconconst.h
-        connections/canbus.cpp connections/canbus.h
-        utils/lfqueue.h
-    )
-    target_include_directories(SavvyCAN_tests PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/mqtt
-        ${CMAKE_CURRENT_SOURCE_DIR}/utils
-        ${CMAKE_CURRENT_SOURCE_DIR}/bus_protocols
-        ${CMAKE_CURRENT_SOURCE_DIR}/connections
-    )
-    target_link_libraries(SavvyCAN_tests PRIVATE
-        Qt6::Core
-        Qt6::Gui
-        Qt6::SerialBus
-        Qt6::Widgets
-        Qt6::Test
-    )
-    set_debug_sanitizer_options(SavvyCAN_tests)
-    install(TARGETS SavvyCAN_tests
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+    enable_testing()
+    add_subdirectory(unit_tests)
 endif()

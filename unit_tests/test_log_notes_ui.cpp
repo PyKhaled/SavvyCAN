@@ -405,7 +405,7 @@ void TestLogNotesUi::testPresetsPanel()
     QPushButton *second = panel.findChild<QPushButton *>("preset1");
     QVERIFY(first && second && panel.findChild<QPushButton *>("preset2"));
     QVERIFY(first->text().startsWith("Ignition on"));
-    QVERIFY(first->text().contains("Ctrl+1"));
+    QVERIFY(first->text().contains(QKeySequence("Ctrl+1").toString(QKeySequence::NativeText)));
     QCOMPARE(second->text(), QString("AC on"));
     QVERIFY(!first->font().bold()); //no Next key: nothing highlighted
 
