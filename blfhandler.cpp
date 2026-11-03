@@ -27,6 +27,7 @@ const quint32 BLF_OBJECT_SIGNATURE = 0x4A424F4C;
 const qint64 BLF_BASE_HEADER_SIZE = 16;
 const qint64 BLF_V1_HEADER_SIZE = 32;
 const qint64 BLF_V2_HEADER_SIZE = 40;
+const quint32 BLF_MAX_CONTAINER_SIZE = 64 * 1024 * 1024;
 
 quint16 readU16(const quint8 *data)
 {
@@ -246,6 +247,7 @@ bool BLFHandler::loadBLF(QString filename, QVector<CommFrame>* frames)
         if (objectSize < BLF_BASE_HEADER_SIZE) return false;
 
         qint64 dataSize = objectSize - BLF_BASE_HEADER_SIZE;
+        if (dataSize > BLF_MAX_CONTAINER_SIZE) return false;
         if (dataSize > inFile.size() - inFile.pos()) return false;
         QByteArray objectData = inFile.read(dataSize);
         if (objectData.size() != dataSize) return false;
@@ -261,6 +263,7 @@ bool BLFHandler::loadBLF(QString filename, QVector<CommFrame>* frames)
         memcpy(&container, objectData.constData(), sizeof(container));
         quint16 compressionMethod = qFromLittleEndian(container.compressionMethod);
         quint32 uncompressedSize = qFromLittleEndian(container.uncompressedSize);
+        if (uncompressedSize > BLF_MAX_CONTAINER_SIZE) return false;
         QByteArray uncompressedData = objectData.mid(sizeof(BLF_OBJ_HEADER_CONTAINER));
         if (compressionMethod == BLF_CONT_ZLIB_COMPRESSION)
         {
