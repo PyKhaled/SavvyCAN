@@ -1,218 +1,333 @@
-name: Build
+name: Build and Release
 
 on:
-  push:
-    branches:
-      - "QT6WIP"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "What to publish after the builds finish"
+        type: choice
+        options:
+          - build-only
+          - tagged-release
+          - continuous-QT6
+        default: build-only
+        required: true
+      release_tag:
+        description: "Tag to create for tagged-release mode"
+        type: string
+        required: false
+      notify_discord:
+        description: "Send a Discord notification after a successful QT6WIP build"
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  buildlinux:
+  linux:
     name: Linux x64
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Prepare Environment
-        run: |
-            sudo apt-get install libxcb-icccm4 libxcb-image0 libxcb-cursor0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-randr0 libxkbcommon-x11-0 libfuse2
+      - name: Check out source
+        uses: actions/checkout@v6
 
-      - name: Prepare Qt Libraries
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libgl1-mesa-dev \
+            libusb-1.0-0-dev \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            libxkbcommon-x11-0 \
+            libfuse2 \
+            pkg-config
+
+      - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-           version: '6.10'
-           modules: 'qtserialbus qtserialport'
+          version: "6.10"
+          modules: "qtserialbus qtserialport"
 
-      - name: Clone
-        uses: actions/checkout@v3
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DPREFIX=/usr
+          -DBUILD_TESTS=ON
 
-      - name: Compile
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Run unit tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Compile translations
         run: |
-          cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
-          cmake --build ${{github.workspace}}/build --config Release -j`grep -c ^processor /proc/cpuinfo`
-          mv ${{github.workspace}}/build/SavvyCAN ${{github.workspace}}
+          for translation in translations/*.ts; do
+            lrelease "$translation"
+          done
 
-      - name: Package
+      - name: Install into AppDir
         run: |
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-          chmod a+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ./SavvyCAN.desktop -appimage -extra-plugins=iconengines,platformthemes/libqgtk3.so,canbus
+          DESTDIR="$GITHUB_WORKSPACE/AppDir" cmake --install build
+          mkdir -p AppDir/usr/share/savvycan/translations
+          cp translations/*.qm AppDir/usr/share/savvycan/translations/
 
-      - uses: actions/upload-artifact@v4
+      - name: Build AppImage
+        run: |
+          wget --quiet --show-progress \
+            https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt-continuous-x86_64.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage \
+            AppDir/usr/share/applications/SavvyCAN.desktop \
+            -appimage \
+            -extra-plugins=iconengines,platformthemes/libqgtk3.so,canbus,tls
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
         with:
-          name: SavvyCAN-Linux_x64.AppImage
-          path: SavvyCAN-*x86_64.AppImage
+          name: SavvyCAN-Linux-x86_64
+          path: SavvyCAN-*.AppImage
+          if-no-files-found: error
+          retention-days: 14
 
-  buildmacos86:
-    name: macOS x64
-    runs-on: macos-15-intel
+  macos:
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: macos-15-intel
+          - arch: arm64
+            runner: macos-15
 
     steps:
-      - name: Prepare macOS Environment
-        run: |
-            brew install cmake
-            brew install qt@6
-            brew link qt@6 --force
+      - name: Check out source
+        uses: actions/checkout@v6
 
-      - name: Clone
-        uses: actions/checkout@v3
-
-      - name: Compile
+      - name: Install Qt
         run: |
-          cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
-          cmake --build ${{github.workspace}}/build --config Release -j`sysctl kern.aioprocmax | awk '{print $2}'`
-          lrelease translations/*.ts
-          mv ${{github.workspace}}/build/SavvyCAN.app ${{github.workspace}}
+          brew install qt@6 cmake
+          brew link qt@6 --force --overwrite
 
-      - name: Package
+      - name: Configure and build
         run: |
-          mkdir -p build/SavvyCAN.app/Frameworks
-          cp /usr/local/share/qt/plugins/canbus/* build/SavvyCAN.app/Frameworks
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+          cmake --build build --config Release --parallel 2
+
+      - name: Package DMG
+        run: |
+          for translation in translations/*.ts; do
+            lrelease "$translation"
+          done
           mkdir -p build/SavvyCAN.app/Contents/MacOS/translations
           mkdir -p build/SavvyCAN.app/Contents/MacOS/help
-          cp -R translations/*.qm build/SavvyCAN.app/Contents/MacOS/translations
-          cp -R help/* build/SavvyCAN.app/Contents/MacOS/help
+          mkdir -p build/SavvyCAN.app/Contents/PlugIns/canbus
+          mkdir -p build/SavvyCAN.app/Contents/PlugIns/tls
+          cp translations/*.qm build/SavvyCAN.app/Contents/MacOS/translations/
+          cp -R help/. build/SavvyCAN.app/Contents/MacOS/help/
+          cp -R "$(brew --prefix qt@6)/plugins/canbus/." build/SavvyCAN.app/Contents/PlugIns/canbus/
+          cp -R "$(brew --prefix qt@6)/plugins/tls/." build/SavvyCAN.app/Contents/PlugIns/tls/
           macdeployqt build/SavvyCAN.app -dmg
-          mv build/SavvyCAN.dmg SavvyCAN_x64.dmg
+          mv build/SavvyCAN.dmg "SavvyCAN-macOS-${{ matrix.arch }}.dmg"
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
         with:
-          name: SavvyCAN-macOS_x64.dmg
-          path: SavvyCAN_x64.dmg
+          name: SavvyCAN-macOS-${{ matrix.arch }}
+          path: SavvyCAN-macOS-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+          retention-days: 14
 
-  buildmacos-arm64:
-    name: macOS ARM64
-    runs-on: macos-15
-
-    steps:
-      - name: Prepare macOS Environment
-        run: |
-            brew install qt@6
-            brew install cmake
-            brew link qt@6 --force
-
-      - name: Clone
-        uses: actions/checkout@v3
-
-      - name: Compile
-        run: |
-          cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
-          cmake --build ${{github.workspace}}/build --config Release -j`sysctl kern.aioprocmax | awk '{print $2}'`
-          lrelease translations/*.ts
-
-      - name: Package
-        run: |
-          mkdir -p build/SavvyCAN.app/Contents/MacOS/translations
-          mkdir -p build/SavvyCAN.app/Contents/MacOS/help
-          cp -R translations/*.qm build/SavvyCAN.app/Contents/MacOS/translations
-          cp -R help/* build/SavvyCAN.app/Contents/MacOS/help
-          macdeployqt build/SavvyCAN.app -dmg
-          mv build/SavvyCAN.dmg SavvyCAN_arm64.dmg
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: SavvyCAN-macOS_ARM64.dmg
-          path: SavvyCAN_arm64.dmg
-
-  buildwindows:
+  windows:
     name: Windows x64
     runs-on: windows-2022
 
     steps:
-      - name: Prepare Qt Libraries
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-           version: '6.10'
-           modules: 'qtserialbus qtserialport'
+          version: "6.10"
+          modules: "qtserialbus qtserialport"
 
-      - name: Clone
-        uses: actions/checkout@v3
+      - name: Install libusb
+        shell: pwsh
+        run: '& "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install libusb:x64-windows'
 
-      - name: Compile
-        shell: cmd
+      - name: Configure and build
+        shell: pwsh
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -B ${{github.workspace}}/build -S ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release
-          cmake --build ${{github.workspace}}/build --config Release -j 2
+          cmake -S . -B build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLIBUSB_INCLUDE_DIR="$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/include/libusb-1.0" `
+            -DLIBUSB_LIBRARY="$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/lib/libusb-1.0.lib"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Package
+      - name: Package Windows application
+        shell: pwsh
         run: |
-          mkdir package
-          copy "build/release/SavvyCAN.exe" package/
-          mkdir package/help
-          copy  translations/*.qm package/translations/
-          copy  help/*.md package/help/
-          mkdir package/help/images
-          copy help/images/*.* package/help/images/
-          mkdir package/examples
-          copy examples/*.* package/examples/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6Core.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6Gui.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6Network.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6PrintSupport.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6Qml.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6SerialBus.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6SerialPort.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6Widgets.dll" package/
-          copy "${Env:QT_ROOT_DIR}/bin/Qt6OpenGL.dll" package/
-          mkdir package/imageformats
-          copy "${Env:QT_ROOT_DIR}/plugins/imageformats/*.*" package/imageformats/
-          mkdir package/platforms
-          copy "${Env:QT_ROOT_DIR}/plugins/platforms/*.*" package/platforms/
-          mkdir package/styles
-          copy "${Env:QT_ROOT_DIR}/plugins/styles/*.*" package/styles/
-          mkdir package/canbus
-          copy "${Env:QT_ROOT_DIR}/plugins/canbus/*.*" package/canbus/
+          $package = Join-Path $PWD "package"
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --compiler-runtime --dir $package "build/Release/SavvyCAN.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - uses: actions/upload-artifact@v4
+          New-Item -ItemType Directory -Force -Path "$package/translations", "$package/help", "$package/examples", "$package/plugins/canbus", "$package/plugins/tls" | Out-Null
+          Get-ChildItem translations -Filter *.ts | ForEach-Object {
+            & "$env:QT_ROOT_DIR/bin/lrelease.exe" $_.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          Copy-Item translations/*.qm "$package/translations/"
+          Copy-Item help/* "$package/help/" -Recurse
+          Copy-Item examples/* "$package/examples/" -Recurse
+          Copy-Item "$env:QT_ROOT_DIR/plugins/canbus/*" "$package/plugins/canbus/" -Recurse
+          Copy-Item "$env:QT_ROOT_DIR/plugins/tls/*" "$package/plugins/tls/" -Recurse
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/libusb-1.0.dll" $package
+
+          Compress-Archive -Path "$package/*" -DestinationPath "SavvyCAN-Windows-x86_64.zip" -Force
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
         with:
-          name: SavvyCAN-Windows_x64
-          path: package
+          name: SavvyCAN-Windows-x86_64
+          path: SavvyCAN-Windows-x86_64.zip
+          if-no-files-found: error
+          retention-days: 14
 
-  pre-release:
-    name: "pre-release"
-    runs-on: "ubuntu-latest"
-    needs: [buildwindows, buildmacos86, buildmacos-arm64, buildlinux]
+  release:
+    name: Publish tagged release
+    runs-on: ubuntu-22.04
+    needs: [linux, macos, windows]
+    if: inputs.publish == 'tagged-release'
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v4.1.7
-
-      - name: Display structure of downloaded files
-        run: zip -r SavvyCAN-Windows_x64_CIBuild.zip SavvyCAN-Windows_x64
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Download platform artifacts
+        uses: actions/download-artifact@v5
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "continuous-QT6"
-          prerelease: true
-          title: "QT6 Development Build"
-          files: |
-            SavvyCAN-Linux_x64.AppImage/SavvyCAN-*x86_64.AppImage
-            SavvyCAN-Windows_x64_CIBuild.zip
-            SavvyCAN-macOS_x64.dmg/SavvyCAN_x64.dmg
-            SavvyCAN-macOS_ARM64.dmg/SavvyCAN_arm64.dmg
+          path: release-assets
+          pattern: SavvyCAN-*
+          merge-multiple: true
 
-  notify:
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "release_tag is required when publish is tagged-release." >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --target "$GITHUB_SHA" \
+            --generate-notes
+
+  continuous-release:
+    name: Update QT6WIP continuous release
+    runs-on: ubuntu-22.04
+    needs: [linux, macos, windows]
+    if: inputs.publish == 'continuous-QT6'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download platform artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: release-assets
+          pattern: SavvyCAN-*
+          merge-multiple: true
+
+      - name: Create or update continuous release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_REF_NAME" != "QT6WIP" ]; then
+            echo "Run this release mode from the QT6WIP branch." >&2
+            exit 1
+          fi
+          if gh release view continuous-QT6 >/dev/null 2>&1; then
+            gh release upload continuous-QT6 release-assets/* --clobber
+          else
+            gh release create continuous-QT6 release-assets/* \
+              --target "$GITHUB_SHA" \
+              --prerelease \
+              --title "QT6 Development Build" \
+              --notes "Automated build from QT6WIP."
+          fi
+
+  notify-discord:
     name: Notify Discord
-    runs-on: ubuntu-latest
-    needs: [buildwindows, buildmacos86, buildmacos-arm64, buildlinux]
-    steps:
-      - id: msg_var
-        name: remove newlines
-        run: |
-          export release_msg=$(cat << EOF
-          ${{ github.event.head_commit.message }}
-          EOF
-          )
-          release_msg="${release_msg//$'\n'/'-'}"
-          release_msg="${release_msg//$'\r'/'-'}"
-          release_msg="${release_msg//$'('/'-'}"
-          release_msg="${release_msg//$')'/'-'}"
-          echo $release_msg
-          echo "{msg}={$release_msg}" >> $GITHUB_OUTPUT
+    runs-on: ubuntu-22.04
+    needs: [linux, macos, windows]
+    if: inputs.notify_discord
 
-      - name: Notify Discord
+    steps:
+      - name: Send build notification when configured
+        env:
+          WEBHOOK_ID: ${{ secrets.WEBHOOK_ID }}
+          WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+          EVENT_PATH: ${{ github.event_path }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
         run: |
-          curl -i -H "Accept: application/json" \
-          -H "Content-Type:application/json" \
-          -X POST \
-          --data "{\"content\": null,\"embeds\": [{\"title\": \"${{ github.repository }} QT6 Build Complete\",      \"description\": \"${{ steps.msg_var.outputs.msg }} \\nCommit: ${{ github.sha }}\\n[Build Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)\",      \"color\": 5131997,      \"author\": {        \"name\": \"Github Builds\"      }    }  ]}" \
-          https://discord.com/api/webhooks/${{ secrets.WEBHOOK_ID }}/${{ secrets.WEBHOOK_TOKEN }}
+          if [ -z "$WEBHOOK_ID" ] || [ -z "$WEBHOOK_TOKEN" ]; then
+            echo "Discord webhook secrets are not configured; skipping notification."
+            exit 0
+          fi
+
+          python3 - <<'PY'
+          import json
+          import os
+
+          with open(os.environ["EVENT_PATH"], encoding="utf-8") as event_file:
+              event = json.load(event_file)
+
+          commit_message = event.get("head_commit", {}).get("message", "Build completed")
+          commit_message = commit_message.replace("\r", " ").replace("\n", " - ")
+          payload = {
+              "embeds": [{
+                  "title": f"{os.environ['REPOSITORY']} QT6 Build Complete",
+                  "description": (
+                      f"{commit_message}\nCommit: {os.environ['SHA']}\n"
+                      f"[Build Artifacts](https://github.com/{os.environ['REPOSITORY']}"
+                      f"/actions/runs/{os.environ['RUN_ID']}#artifacts)"
+                  ),
+                  "color": 5131997,
+                  "author": {"name": "GitHub Builds"},
+              }]
+          }
+          with open("discord-payload.json", "w", encoding="utf-8") as payload_file:
+              json.dump(payload, payload_file)
+          PY
+
+          curl --fail --silent --show-error \
+            -H "Content-Type: application/json" \
+            --data-binary @discord-payload.json \
+            "https://discord.com/api/webhooks/$WEBHOOK_ID/$WEBHOOK_TOKEN"
