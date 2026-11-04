@@ -48,7 +48,7 @@ The log formats and the DBC/LDF parser don't change. Qt Network is already linke
 
 ## 4. Design
 
-### 4.1 `GitHubClient` (`github/githubclient.{h,cpp}`)
+### 4.1 `GitHubClient` (`src/integrations/github/githubclient.{h,cpp}`)
 
 A wrapper around `QNetworkAccessManager` and GitHub's REST API (`https://api.github.com`). Built in phase 1 unless
 marked otherwise:
@@ -210,7 +210,7 @@ From the save dialog, so a log or DBC file can go into a repo that doesn't exist
 
 ## 8. Testing
 
-- `unit_tests/test_github.cpp` (`TestGitHub`) runs against a local `QTcpServer` faking GitHub. Phase 1 covers
+- `tests/unit/test_github.cpp` (`TestGitHub`) runs against a local `QTcpServer` faking GitHub. Phase 1 covers
   headers, branch paging, tree parsing, raw download with encoded paths, 401/403/404/500 and the rate limit, an
   unreachable server, a client deleted mid-request, the device flow (`authorization_pending`, `slow_down`,
   `access_denied`, `expired_token`, device flow disabled), the cache, settings, and both dialogs. With
@@ -220,7 +220,7 @@ From the save dialog, so a log or DBC file can go into a repo that doesn't exist
   (Overwrite, Save Under a New Name) and replacing another file; a new branch with a pull request, and its removal
   when the save fails; creating repos (account, organisation, name taken, no permission); the name following the
   file type; no saving signed out.
-- `unit_tests/test_file_dialog_split.cpp` (`TestFileDialogSplit`) saves and reloads each log type and a DBC file.
+- `tests/unit/test_file_dialog_split.cpp` (`TestFileDialogSplit`) saves and reloads each log type and a DBC file.
 - Round trip against the scratch repo: load a log and a DBC, save them back, compare byte for byte; edit the file on
   github.com in between to check the conflict prompt. Repo creation is tried with a throwaway name under the user's
   own account.
