@@ -2,7 +2,7 @@
 #define LOGNOTES_H
 
 //Notes saved with a log: what it's for, how it was captured and what was seen, so the log file needs no separate
-//engineering notes. They're Markdown (see docs/log-notes-roadmap.md), written at the end of a native CSV log with
+//engineering notes. They're Markdown, written at the end of a native CSV log with
 //each line starting with "# ", or into a <log file>.notes.md file next to a log of any other format.
 
 #include <QDateTime>

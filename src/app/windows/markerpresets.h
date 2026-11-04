@@ -2,7 +2,7 @@
 #define MARKERPRESETS_H
 
 //Marker texts prepared before a test, each with a key of its own, so a marker goes into a running log with one key
-//press and no typing (see docs/log-notes-roadmap.md section 8). Kept in the settings and in log notes templates, as
+//press and no typing. Kept in the settings and in log notes templates, as
 //Markdown:
 //
 //  ## Marker presets

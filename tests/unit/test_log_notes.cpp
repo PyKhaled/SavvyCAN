@@ -126,7 +126,7 @@ void TestLogNotes::testMarkdownRoundTrip()
     QVERIFY(crlf == notes);
 }
 
-//the layout described in docs/log-notes-roadmap.md
+//the documented log-notes Markdown layout
 void TestLogNotes::testMarkdownLayout()
 {
     const QStringList lines = sampleNotes().toMarkdown().split('\n');
@@ -276,7 +276,7 @@ void TestLogNotes::testSetFrames()
     QVERIFY(!notes.hasSpan);
 }
 
-//what keys marker presets may have (docs/log-notes-roadmap.md section 8.3)
+//what keys marker presets may have
 void TestLogNotes::testShortcutCheck_data()
 {
     QTest::addColumn<QString>("key");

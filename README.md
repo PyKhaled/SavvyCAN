@@ -47,8 +47,8 @@ to download it separately.
 
 The CMake build requires CMake 3.21 or newer, Qt 6.4 or newer with the Core,
 Gui, PrintSupport, SerialBus, SerialPort, Widgets, Help, Network, OpenGL, and
-QML modules, and OpenGL development files. libusb-1.0 is optional and enables
-pico-flexray support when available. The qmake project requires Qt 6.5 or newer.
+QML modules, and OpenGL development files. The qmake project requires Qt 6.5 or
+newer.
 
 It appears that the current binary build for MacOS requires at least MacOS 10.15
 

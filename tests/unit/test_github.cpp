@@ -23,8 +23,8 @@
 #include "integrations/github/githubdeviceflow.h"
 #include "integrations/github/githubsettings.h"
 
-// GitHub repos (phase 1 of docs/github-repos-roadmap.md): the API client and the device flow sign-in against a fake
-// GitHub on a local port, the download cache, the settings, and matching file names to file types.
+// The API client and device flow sign-in against a fake GitHub on a local port, the download cache, settings, and
+// matching file names to file types.
 
 struct FakeRequest
 {
