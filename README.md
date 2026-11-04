@@ -85,11 +85,11 @@ make -j
 ## Build and run tests
 
 Configure with `BUILD_TESTS=ON` to build the maintained unit-test suite along
-with the application. The test runner script performs the configure, build, and
-CTest steps:
+with the application. The test script performs the configure, build, and CTest
+steps:
 
 ```sh
-./scripts/run_tests.sh
+./scripts/test.sh
 ```
 
 You can optionally pass a build directory:
