@@ -115,6 +115,17 @@ The offscreen Qt platform lets widget tests run on machines without a display.
   notes.
 - [Scripts](scripts/README.md) — test runner and translation utilities.
 
+## Repository layout
+
+- `src/` contains SavvyCAN application code, grouped by feature and subsystem.
+- `third_party/` contains vendored QCustomPlot and QMQTT sources and notices.
+- `tests/unit/` is the maintained CMake test suite; `tests/legacy/` holds the
+  separate qmake test project.
+- `resources/`, `help/`, `examples/`, and `translations/` hold application
+  assets and user-facing data.
+- `docs/`, `scripts/`, `tools/`, and `packaging/` hold developer documentation,
+  maintenance scripts, utilities, and platform packaging files.
+
 ### Used Items Requiring Attribution
 
 nodes by Adrien Coquet from the Noun Project

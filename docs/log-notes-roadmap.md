@@ -334,7 +334,7 @@ key there (not changed in phase 5).
 
 ## 10. Testing
 
-- `unit_tests/test_log_notes.cpp` (`TestLogNotes`), phase 1:
+- `tests/unit/test_log_notes.cpp` (`TestLogNotes`), phase 1:
   - Markdown round trip with every field, empty notes, unknown keys and sections kept, multi-line sections,
     marker times parsed to the microsecond;
   - the native CSV block: frames load the same with and without notes, commas and `%` survive, notes longer than the
@@ -343,7 +343,7 @@ key there (not changed in phase 5).
     that aren't SavvyCAN's notes kept.
 - Once, by hand: the `fork-ci` native CSV loader from before this change, built on its own, on a log with notes
   written by the new code (section 4.3).
-- `unit_tests/test_log_notes_ui.cpp` (`TestLogNotesUi`), phase 2: the dialog shows and returns every field
+- `tests/unit/test_log_notes_ui.cpp` (`TestLogNotesUi`), phase 2: the dialog shows and returns every field
   (including the ones it doesn't show), typed fields and markers, Save with/without Notes and Cancel, the "ask" box,
   OK/Cancel when editing, templates (save, list, use, delete), the last notes, and the panel (escaping, sections,
   Edit...). With `SAVVYCAN_SCREENSHOTS` set it saves pictures of the dialog and panel.

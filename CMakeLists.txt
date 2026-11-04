@@ -9,7 +9,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/src/ui)
 
 option(USE_DBUS "Enable DBus support" OFF)
 option(BUILD_TESTS "Build test target" OFF)
@@ -41,143 +41,152 @@ endif()
 qt_standard_project_setup()
 
 qt_add_executable(SavvyCAN WIN32 MACOSX_BUNDLE
-    bisectwindow.cpp bisectwindow.h
-    blfhandler.cpp blfhandler.h
-    croplogdialog.cpp croplogdialog.h
-    bus_protocols/isotp_handler.cpp bus_protocols/isotp_handler.h
-    bus_protocols/handler_factory.cpp bus_protocols/handler_factory.h
-    bus_protocols/isotp_message.h
-    bus_protocols/j1939_handler.cpp bus_protocols/j1939_handler.h
-    bus_protocols/obd2_pids.cpp bus_protocols/obd2_pids.h
-    bus_protocols/obd2_poller.cpp bus_protocols/obd2_poller.h
-    bus_protocols/obd2_dbc.cpp bus_protocols/obd2_dbc.h
-    bus_protocols/uds_handler.cpp bus_protocols/uds_handler.h
-    can_structs.cpp can_structs.h
-    can_trigger_structs.h
-    canbridgewindow.cpp canbridgewindow.h
-    candatagrid.cpp candatagrid.h
-    canfilter.cpp canfilter.h
-    canframemodel.cpp canframemodel.h
-    config.h
-    connections/canbus.cpp connections/canbus.h
-    connections/canconconst.h
-    connections/canconfactory.cpp connections/canconfactory.h
-    connections/canconmanager.cpp connections/canconmanager.h
-    connections/canconnection.cpp connections/canconnection.h
-    connections/canconnectionmodel.cpp connections/canconnectionmodel.h
-    connections/canlogserver.cpp connections/canlogserver.h
-    connections/canserver.cpp connections/canserver.h
-    connections/picoflexray.cpp connections/picoflexray.h
-    connections/picoflexrayparser.cpp connections/picoflexrayparser.h
-    connections/connectionwindow.cpp connections/connectionwindow.h
-    connections/gvretserial.cpp connections/gvretserial.h
-    connections/lawicel_serial.cpp connections/lawicel_serial.h
-    connections/mqtt_bus.cpp connections/mqtt_bus.h
-    connections/newconnectiondialog.cpp connections/newconnectiondialog.h
-    connections/serialbusconnection.cpp connections/serialbusconnection.h
-    connections/socketcand.cpp connections/socketcand.h
-    dbc/dbc_classes.cpp dbc/dbc_classes.h
-    dbc/dbchandler.cpp dbc/dbchandler.h
-    dbc/dbcloadsavewindow.cpp dbc/dbcloadsavewindow.h
-    dbc/dbcmaineditor.cpp dbc/dbcmaineditor.h
-    dbc/dbcmessageeditor.cpp dbc/dbcmessageeditor.h
-    dbc/dbcnodeduplicateeditor.cpp dbc/dbcnodeduplicateeditor.h
-    dbc/dbcnodeeditor.cpp dbc/dbcnodeeditor.h
-    dbc/dbcnoderebaseeditor.cpp dbc/dbcnoderebaseeditor.h
-    dbc/dbcsignaleditor.cpp dbc/dbcsignaleditor.h
-    filterutility.cpp filterutility.h
-    re/udsfirmwareuploaderwindow.cpp re/udsfirmwareuploaderwindow.h
-    framefileio.cpp framefileio.h
-    lognotes.cpp lognotes.h
-    lognotesdialog.cpp lognotesdialog.h
-    lognotespanel.cpp lognotespanel.h
-    markerpresets.cpp markerpresets.h
-    markerpresetsdialog.cpp markerpresetsdialog.h
-    shortcutcheck.cpp shortcutcheck.h
-    frameplaybackobject.cpp frameplaybackobject.h
-    frameplaybackwindow.cpp frameplaybackwindow.h
-    framesenderobject.cpp framesenderobject.h
-    framesenderwindow.cpp framesenderwindow.h
-    github/githubaccountdialog.cpp github/githubaccountdialog.h
-    github/githubbrowserdialog.cpp github/githubbrowserdialog.h
-    github/githubcache.cpp github/githubcache.h
-    github/githubclient.cpp github/githubclient.h
-    github/githubdeviceflow.cpp github/githubdeviceflow.h
-    github/githubhelp.h
-    github/githubsettings.cpp github/githubsettings.h
-    helpwindow.cpp helpwindow.h
-    jsedit.cpp jsedit.h
-    main.cpp
-    mainsettingsdialog.cpp mainsettingsdialog.h
-    mainwindow.cpp mainwindow.h
-    motorcontrollerconfigwindow.cpp motorcontrollerconfigwindow.h
-    mqtt/qmqtt.h
-    mqtt/qmqtt_client.cpp mqtt/qmqtt_client.h mqtt/qmqtt_client_p.cpp mqtt/qmqtt_client_p.h
-    mqtt/qmqtt_frame.cpp mqtt/qmqtt_frame.h
-    mqtt/qmqtt_global.h
-    mqtt/qmqtt_message.cpp mqtt/qmqtt_message.h mqtt/qmqtt_message_p.h
-    mqtt/qmqtt_network.cpp mqtt/qmqtt_network_p.h
-    mqtt/qmqtt_networkinterface.h
-    mqtt/qmqtt_routedmessage.h
-    mqtt/qmqtt_router.cpp mqtt/qmqtt_router.h
-    mqtt/qmqtt_routesubscription.cpp mqtt/qmqtt_routesubscription.h
-    mqtt/qmqtt_socket.cpp mqtt/qmqtt_socket_p.h
-    mqtt/qmqtt_socketinterface.h
-    mqtt/qmqtt_ssl_socket.cpp mqtt/qmqtt_ssl_socket_p.h
-    mqtt/qmqtt_timer.cpp mqtt/qmqtt_timer_p.h
-    mqtt/qmqtt_timerinterface.h
-    mqtt/qmqtt_websocket.cpp mqtt/qmqtt_websocket_p.h
-    mqtt/qmqtt_websocketiodevice.cpp mqtt/qmqtt_websocketiodevice_p.h
-    pcaplite.cpp pcaplite.h
-    qcpaxistickerhex.cpp qcpaxistickerhex.h
-    qcustomplot.cpp qcustomplot.h
-    re/dbccomparatorwindow.cpp re/dbccomparatorwindow.h
-    re/discretestatewindow.cpp re/discretestatewindow.h
-    re/filecomparatorwindow.cpp re/filecomparatorwindow.h
-    re/flowviewwindow.cpp re/flowviewwindow.h
-    re/frameinfowindow.cpp re/frameinfowindow.h
-    re/fuzzingwindow.cpp re/fuzzingwindow.h
-    re/graphingwindow.cpp re/graphingwindow.h
-    re/isotp_interpreterwindow.cpp re/isotp_interpreterwindow.h
-    re/newgraphdialog.cpp re/newgraphdialog.h
-    re/rangestatewindow.cpp re/rangestatewindow.h
-    re/searchwindow.cpp re/searchwindow.h
-    re/sniffer/SnifferDelegate.cpp re/sniffer/SnifferDelegate.h
-    re/sniffer/snifferitem.cpp re/sniffer/snifferitem.h
-    re/sniffer/sniffermodel.cpp re/sniffer/sniffermodel.h
-    re/sniffer/snifferwindow.cpp re/sniffer/snifferwindow.h
-    re/temporalgraphwindow.cpp re/temporalgraphwindow.h
-    re/udsscanwindow.cpp re/udsscanwindow.h
-    re/obd2window.cpp re/obd2window.h
-    scriptcontainer.cpp scriptcontainer.h
-    scriptingwindow.cpp scriptingwindow.h
-    signalviewerwindow.cpp signalviewerwindow.h
-    simplecrypt.cpp simplecrypt.h
-    triggerdialog.cpp triggerdialog.h triggerdialog.ui
-    utility.cpp utility.h
-    utils/HexSpinBox.h
-    utils/lfqueue.h
-    images.qrc icons.qrc
-    ui/bisectwindow.ui ui/canbridgewindow.ui ui/candatagrid.ui ui/connectionwindow.ui ui/dbccomparatorwindow.ui ui/dbcloadsavewindow.ui ui/dbcmaineditor.ui ui/dbcmessageeditor.ui ui/dbcnodeduplicateeditor.ui ui/dbcnodeeditor.ui ui/dbcnoderebaseeditor.ui ui/dbcsignaleditor.ui ui/discretestatewindow.ui ui/filecomparatorwindow.ui ui/udsfirmwareuploaderwindow.ui ui/flowviewwindow.ui ui/frameinfowindow.ui ui/frameplaybackwindow.ui ui/framesenderwindow.ui ui/fuzzingwindow.ui ui/graphingwindow.ui ui/helpwindow.ui ui/isotp_interpreterwindow.ui ui/mainsettingsdialog.ui ui/mainwindow.ui ui/motorcontrollerconfigwindow.ui ui/newconnectiondialog.ui ui/newgraphdialog.ui ui/rangestatewindow.ui ui/scriptingwindow.ui ui/searchwindow.ui ui/signalviewerwindow.ui ui/snifferwindow.ui ui/temporalgraphwindow.ui ui/udsscanwindow.ui
+    src/analysis/bisectwindow.cpp src/analysis/bisectwindow.h
+    src/io/blfhandler.cpp src/io/blfhandler.h
+    src/app/windows/croplogdialog.cpp src/app/windows/croplogdialog.h
+    src/protocols/isotp_handler.cpp src/protocols/isotp_handler.h
+    src/protocols/handler_factory.cpp src/protocols/handler_factory.h
+    src/protocols/isotp_message.h
+    src/protocols/j1939_handler.cpp src/protocols/j1939_handler.h
+    src/protocols/obd2_pids.cpp src/protocols/obd2_pids.h
+    src/protocols/obd2_poller.cpp src/protocols/obd2_poller.h
+    src/protocols/obd2_dbc.cpp src/protocols/obd2_dbc.h
+    src/protocols/uds_handler.cpp src/protocols/uds_handler.h
+    src/core/can_structs.cpp src/core/can_structs.h
+    src/core/can_trigger_structs.h
+    src/app/windows/canbridgewindow.cpp src/app/windows/canbridgewindow.h
+    src/app/windows/candatagrid.cpp src/app/windows/candatagrid.h
+    src/core/canfilter.cpp src/core/canfilter.h
+    src/core/canframemodel.cpp src/core/canframemodel.h
+    src/core/config.h
+    src/connections/canbus.cpp src/connections/canbus.h
+    src/connections/canconconst.h
+    src/connections/canconfactory.cpp src/connections/canconfactory.h
+    src/connections/canconmanager.cpp src/connections/canconmanager.h
+    src/connections/canconnection.cpp src/connections/canconnection.h
+    src/connections/canconnectionmodel.cpp src/connections/canconnectionmodel.h
+    src/connections/canlogserver.cpp src/connections/canlogserver.h
+    src/connections/canserver.cpp src/connections/canserver.h
+    src/connections/picoflexray.cpp src/connections/picoflexray.h
+    src/connections/picoflexrayparser.cpp src/connections/picoflexrayparser.h
+    src/connections/connectionwindow.cpp src/connections/connectionwindow.h
+    src/connections/gvretserial.cpp src/connections/gvretserial.h
+    src/connections/lawicel_serial.cpp src/connections/lawicel_serial.h
+    src/connections/mqtt_bus.cpp src/connections/mqtt_bus.h
+    src/connections/newconnectiondialog.cpp src/connections/newconnectiondialog.h
+    src/connections/serialbusconnection.cpp src/connections/serialbusconnection.h
+    src/connections/socketcand.cpp src/connections/socketcand.h
+    src/dbc/dbc_classes.cpp src/dbc/dbc_classes.h
+    src/dbc/dbchandler.cpp src/dbc/dbchandler.h
+    src/dbc/dbcloadsavewindow.cpp src/dbc/dbcloadsavewindow.h
+    src/dbc/dbcmaineditor.cpp src/dbc/dbcmaineditor.h
+    src/dbc/dbcmessageeditor.cpp src/dbc/dbcmessageeditor.h
+    src/dbc/dbcnodeduplicateeditor.cpp src/dbc/dbcnodeduplicateeditor.h
+    src/dbc/dbcnodeeditor.cpp src/dbc/dbcnodeeditor.h
+    src/dbc/dbcnoderebaseeditor.cpp src/dbc/dbcnoderebaseeditor.h
+    src/dbc/dbcsignaleditor.cpp src/dbc/dbcsignaleditor.h
+    src/core/filterutility.cpp src/core/filterutility.h
+    src/analysis/udsfirmwareuploaderwindow.cpp src/analysis/udsfirmwareuploaderwindow.h
+    src/io/framefileio.cpp src/io/framefileio.h
+    src/app/windows/lognotes.cpp src/app/windows/lognotes.h
+    src/app/windows/lognotesdialog.cpp src/app/windows/lognotesdialog.h
+    src/app/windows/lognotespanel.cpp src/app/windows/lognotespanel.h
+    src/app/windows/markerpresets.cpp src/app/windows/markerpresets.h
+    src/app/windows/markerpresetsdialog.cpp src/app/windows/markerpresetsdialog.h
+    src/core/shortcutcheck.cpp src/core/shortcutcheck.h
+    src/app/windows/frameplaybackobject.cpp src/app/windows/frameplaybackobject.h
+    src/app/windows/frameplaybackwindow.cpp src/app/windows/frameplaybackwindow.h
+    src/app/windows/framesenderobject.cpp src/app/windows/framesenderobject.h
+    src/app/windows/framesenderwindow.cpp src/app/windows/framesenderwindow.h
+    src/integrations/github/githubaccountdialog.cpp src/integrations/github/githubaccountdialog.h
+    src/integrations/github/githubbrowserdialog.cpp src/integrations/github/githubbrowserdialog.h
+    src/integrations/github/githubcache.cpp src/integrations/github/githubcache.h
+    src/integrations/github/githubclient.cpp src/integrations/github/githubclient.h
+    src/integrations/github/githubdeviceflow.cpp src/integrations/github/githubdeviceflow.h
+    src/integrations/github/githubhelp.h
+    src/integrations/github/githubsettings.cpp src/integrations/github/githubsettings.h
+    src/app/helpwindow.cpp src/app/helpwindow.h
+    src/scripting/jsedit.cpp src/scripting/jsedit.h
+    src/app/main.cpp
+    src/app/mainsettingsdialog.cpp src/app/mainsettingsdialog.h
+    src/app/mainwindow.cpp src/app/mainwindow.h
+    src/app/windows/motorcontrollerconfigwindow.cpp src/app/windows/motorcontrollerconfigwindow.h
+    third_party/qmqtt/qmqtt.h
+    third_party/qmqtt/qmqtt_client.cpp third_party/qmqtt/qmqtt_client.h third_party/qmqtt/qmqtt_client_p.cpp third_party/qmqtt/qmqtt_client_p.h
+    third_party/qmqtt/qmqtt_frame.cpp third_party/qmqtt/qmqtt_frame.h
+    third_party/qmqtt/qmqtt_global.h
+    third_party/qmqtt/qmqtt_message.cpp third_party/qmqtt/qmqtt_message.h third_party/qmqtt/qmqtt_message_p.h
+    third_party/qmqtt/qmqtt_network.cpp third_party/qmqtt/qmqtt_network_p.h
+    third_party/qmqtt/qmqtt_networkinterface.h
+    third_party/qmqtt/qmqtt_routedmessage.h
+    third_party/qmqtt/qmqtt_router.cpp third_party/qmqtt/qmqtt_router.h
+    third_party/qmqtt/qmqtt_routesubscription.cpp third_party/qmqtt/qmqtt_routesubscription.h
+    third_party/qmqtt/qmqtt_socket.cpp third_party/qmqtt/qmqtt_socket_p.h
+    third_party/qmqtt/qmqtt_socketinterface.h
+    third_party/qmqtt/qmqtt_ssl_socket.cpp third_party/qmqtt/qmqtt_ssl_socket_p.h
+    third_party/qmqtt/qmqtt_timer.cpp third_party/qmqtt/qmqtt_timer_p.h
+    third_party/qmqtt/qmqtt_timerinterface.h
+    third_party/qmqtt/qmqtt_websocket.cpp third_party/qmqtt/qmqtt_websocket_p.h
+    third_party/qmqtt/qmqtt_websocketiodevice.cpp third_party/qmqtt/qmqtt_websocketiodevice_p.h
+    src/io/pcaplite.cpp src/io/pcaplite.h
+    src/analysis/qcpaxistickerhex.cpp src/analysis/qcpaxistickerhex.h
+    third_party/qcustomplot/qcustomplot.cpp third_party/qcustomplot/qcustomplot.h
+    src/analysis/dbccomparatorwindow.cpp src/analysis/dbccomparatorwindow.h
+    src/analysis/discretestatewindow.cpp src/analysis/discretestatewindow.h
+    src/analysis/filecomparatorwindow.cpp src/analysis/filecomparatorwindow.h
+    src/analysis/flowviewwindow.cpp src/analysis/flowviewwindow.h
+    src/analysis/frameinfowindow.cpp src/analysis/frameinfowindow.h
+    src/analysis/fuzzingwindow.cpp src/analysis/fuzzingwindow.h
+    src/analysis/graphingwindow.cpp src/analysis/graphingwindow.h
+    src/analysis/isotp_interpreterwindow.cpp src/analysis/isotp_interpreterwindow.h
+    src/analysis/newgraphdialog.cpp src/analysis/newgraphdialog.h
+    src/analysis/rangestatewindow.cpp src/analysis/rangestatewindow.h
+    src/analysis/searchwindow.cpp src/analysis/searchwindow.h
+    src/analysis/sniffer/SnifferDelegate.cpp src/analysis/sniffer/SnifferDelegate.h
+    src/analysis/sniffer/snifferitem.cpp src/analysis/sniffer/snifferitem.h
+    src/analysis/sniffer/sniffermodel.cpp src/analysis/sniffer/sniffermodel.h
+    src/analysis/sniffer/snifferwindow.cpp src/analysis/sniffer/snifferwindow.h
+    src/analysis/temporalgraphwindow.cpp src/analysis/temporalgraphwindow.h
+    src/analysis/udsscanwindow.cpp src/analysis/udsscanwindow.h
+    src/analysis/obd2window.cpp src/analysis/obd2window.h
+    src/scripting/scriptcontainer.cpp src/scripting/scriptcontainer.h
+    src/app/windows/scriptingwindow.cpp src/app/windows/scriptingwindow.h
+    src/analysis/signalviewerwindow.cpp src/analysis/signalviewerwindow.h
+    src/core/simplecrypt.cpp src/core/simplecrypt.h
+    src/app/windows/triggerdialog.cpp src/app/windows/triggerdialog.h src/ui/triggerdialog.ui
+    src/core/utility.cpp src/core/utility.h
+    src/utils/HexSpinBox.h
+    src/utils/lfqueue.h
+    resources/images.qrc resources/icons.qrc
+    src/ui/bisectwindow.ui src/ui/canbridgewindow.ui src/ui/candatagrid.ui src/ui/connectionwindow.ui src/ui/dbccomparatorwindow.ui src/ui/dbcloadsavewindow.ui src/ui/dbcmaineditor.ui src/ui/dbcmessageeditor.ui src/ui/dbcnodeduplicateeditor.ui src/ui/dbcnodeeditor.ui src/ui/dbcnoderebaseeditor.ui src/ui/dbcsignaleditor.ui src/ui/discretestatewindow.ui src/ui/filecomparatorwindow.ui src/ui/udsfirmwareuploaderwindow.ui src/ui/flowviewwindow.ui src/ui/frameinfowindow.ui src/ui/frameplaybackwindow.ui src/ui/framesenderwindow.ui src/ui/fuzzingwindow.ui src/ui/graphingwindow.ui src/ui/helpwindow.ui src/ui/isotp_interpreterwindow.ui src/ui/mainsettingsdialog.ui src/ui/mainwindow.ui src/ui/motorcontrollerconfigwindow.ui src/ui/newconnectiondialog.ui src/ui/newgraphdialog.ui src/ui/rangestatewindow.ui src/ui/scriptingwindow.ui src/ui/searchwindow.ui src/ui/signalviewerwindow.ui src/ui/snifferwindow.ui src/ui/temporalgraphwindow.ui src/ui/udsscanwindow.ui
 )
 
 if(APPLE)
-    set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/icons/SavvyIcon.icns")
+    set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/SavvyIcon.icns")
     set_source_files_properties(${APP_ICON_MACOS} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources"
     )
     target_sources(SavvyCAN PRIVATE ${APP_ICON_MACOS})
     set_target_properties(SavvyCAN PROPERTIES
         MACOSX_BUNDLE_ICON_FILE SavvyIcon.icns
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.cmake"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/packaging/Info.plist.cmake"
     )
 endif()
 
 target_include_directories(SavvyCAN PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/mqtt
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils
-    ${CMAKE_CURRENT_SOURCE_DIR}/bus_protocols
-    ${CMAKE_CURRENT_SOURCE_DIR}/connections
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/app
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/app/windows
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/dbc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/sniffer
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/integrations/github
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/scripting
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/qmqtt
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/qcustomplot
 )
 
 target_compile_definitions(SavvyCAN PRIVATE
@@ -236,7 +245,7 @@ endif()
 
 if(WIN32)
     set_target_properties(SavvyCAN PROPERTIES WIN32_EXECUTABLE TRUE)
-    target_sources(SavvyCAN PRIVATE icons/SavvyIcon.rc)
+    target_sources(SavvyCAN PRIVATE resources/icons/SavvyIcon.rc)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -244,8 +253,8 @@ if(UNIX AND NOT APPLE)
         set(PREFIX "/usr/local")
     endif()
     install(TARGETS SavvyCAN RUNTIME DESTINATION ${PREFIX}/bin)
-    install(FILES SavvyCAN.desktop DESTINATION ${PREFIX}/share/applications)
-    install(DIRECTORY icons/hicolor DESTINATION ${PREFIX}/share/icons)
+    install(FILES packaging/SavvyCAN.desktop DESTINATION ${PREFIX}/share/applications)
+    install(DIRECTORY resources/icons/hicolor DESTINATION ${PREFIX}/share/icons)
     install(DIRECTORY examples DESTINATION ${PREFIX}/share/savvycan)
     install(DIRECTORY help DESTINATION ${PREFIX}/share/savvycan)
 endif()
@@ -257,5 +266,5 @@ install(TARGETS SavvyCAN
 
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(unit_tests)
+    add_subdirectory(tests/unit)
 endif()

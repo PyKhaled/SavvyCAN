@@ -36,13 +36,13 @@ timeline (Tom-evnut fork). Written against `fork-ci` (2026-10-25). Each phase br
 
 | Need | What exists | Where |
 |---|---|---|
-| Send a request, get multi-frame replies | `ISOTP_HANDLER`: single and multi-frame, 11 and 29-bit IDs (`ID > 0x7FF` sets extended), flow control frames, pad byte | `bus_protocols/isotp_handler.cpp`, `HandlerFactory::createISOTPHandler()` |
-| Service names | `UDS_HANDLER` already lists the OBD-II services 01 to 0A next to the UDS ones | `bus_protocols/uds_handler.h` |
-| Send, wait, time out | The UDS Scanner sends a request, waits for the reply on request ID + offset (8 by default) and moves on | `re/udsscanwindow.cpp`, **Send Frames > UDS Scanner** |
+| Send a request, get multi-frame replies | `ISOTP_HANDLER`: single and multi-frame, 11 and 29-bit IDs (`ID > 0x7FF` sets extended), flow control frames, pad byte | `src/protocols/isotp_handler.cpp`, `HandlerFactory::createISOTPHandler()` |
+| Service names | `UDS_HANDLER` already lists the OBD-II services 01 to 0A next to the UDS ones | `src/protocols/uds_handler.h` |
+| Send, wait, time out | The UDS Scanner sends a request, waits for the reply on request ID + offset (8 by default) and moves on | `src/analysis/udsscanwindow.cpp`, **Send Frames > UDS Scanner** |
 | Polling without new code | The Frame Sender sends fixed frames on a timer (`100ms` trigger); scripts have `isotp` and `uds` objects and a tick timer | `framesenderobject.cpp`, `scriptcontainer.h` |
 | Requests and replies in the log | Frames SavvyCAN sends are echoed into the capture (`setLocalEcho`) with their bus number, so one log holds the OBD traffic and the other bus | `connections/canconmanager.cpp` |
 | Decoding | DBC multiplexing with several levels (`SG_MUL_VAL_`); the parser's own example line is an OBD PID (`S1_PID_0D_VehicleSpeed` on 2024 = 0x7E8) | `dbc/dbchandler.cpp`, `DBC_SIGNAL::isSignalInMessage` |
-| Graphs | The graph window checks `isSignalInMessage` for each frame, so multiplexed signals plot correctly | `re/graphingwindow.cpp` |
+| Graphs | The graph window checks `isSignalInMessage` for each frame, so multiplexed signals plot correctly | `src/analysis/graphingwindow.cpp` |
 | Building a DBC in code | `DBCHandler::createBlankFile()`, `DBCFile::addMessage()`, `DBCFile::setAssocBus()` | `dbc/dbchandler.h` |
 | One clock for all buses | The "system clock" timestamp setting (`Main/TimeClock`) | `mainsettingsdialog.cpp` |
 
@@ -56,7 +56,7 @@ window to drive it, and a generated OBD DBC.
 
 ## 4. Design
 
-### 4.1 PID table and decoder (`bus_protocols/obd2_pids.{h,cpp}`)
+### 4.1 PID table and decoder (`src/protocols/obd2_pids.{h,cpp}`)
 
 - A table of SAE J1979 Mode 01 PIDs: number, name, unit, data bytes, and how to decode them. Most are a
   big-endian 1 or 2 byte value with a scale and offset, which maps straight onto a DBC signal, for example:
@@ -87,7 +87,7 @@ window to drive it, and a generated OBD DBC.
   of 0x01 and 0x41, the multi-sensor PIDs from 0x65 on, maximum values in 0x4F/0x50) are left out or only partly
   decoded for now.
 
-### 4.2 Poll engine (`bus_protocols/obd2_poller.{h,cpp}`)
+### 4.2 Poll engine (`src/protocols/obd2_poller.{h,cpp}`)
 
 A received `UDS_MESSAGE` keeps the whole ISO-TP payload, service byte first (`41 0C 1A F8` for an engine speed
 reply), as written in `uds_handler.h` since phase 0. The poll engine reads replies that way.
@@ -118,7 +118,7 @@ arrive whole) and runs the polling. No UI in it, so the window and scripts can s
 - **Signals out:** `valueUpdated(ecu, pid, values, timestamp)`, `pidUnsupported(ecu, pid)`, `statsUpdated(...)`
   (achieved rate, timeouts, negative replies).
 
-**As built (phase 2):** `Obd2Poller` (`bus_protocols/obd2_poller.{h,cpp}`) takes an `ISOTP_HANDLER` of its own (it sets
+**As built (phase 2):** `Obd2Poller` (`src/protocols/obd2_poller.{h,cpp}`) takes an `ISOTP_HANDLER` of its own (it sets
 the handler's reply filter, flow control and reception) and a clock, so `TestObd2Poller` drives the timing without
 waiting; an internal timer calls `service()` in the app. A poll item for ECU 0 is sent to all ECUs and waits the
 whole reply time for every answer. A negative reply 0x11, 0x12 or 0x31 marks that PID unsupported for that ECU and
@@ -126,7 +126,7 @@ it isn't polled again; other negative replies (0x22 conditions not correct, for 
 after its request timed out is still reported as a value. VIN requests go to one ECU only, since flow control goes
 to the ID last sent to.
 
-### 4.3 OBD-II window (`re/obd2window.{h,cpp}`, `ui/obd2window.ui`)
+### 4.3 OBD-II window (`src/analysis/obd2window.{h,cpp}`)
 
 Under **Send Frames**, next to the UDS Scanner.
 
@@ -140,7 +140,7 @@ Under **Send Frames**, next to the UDS Scanner.
 - A warning when the bus's connection is listen-only, since nothing can be sent then.
 - Help page `help/obd2.md`.
 
-**As built (phase 3):** `re/obd2window.{h,cpp}` builds its widgets in code (no `.ui` file), like the GitHub windows,
+**As built (phase 3):** `src/analysis/obd2window.{h,cpp}` builds its widgets in code (no `.ui` file), like the GitHub windows,
 and gets the bus count, the listen-only check and help from MainWindow through setters, so `TestObd2Window` builds
 it on its own. The table has one row per (ECU, PID): before discovery every PID for all ECUs, after it each ECU's
 supported PIDs (or all with "Show unsupported PIDs"); ticked rows and their intervals survive a rebuild. Closing the
@@ -172,7 +172,7 @@ lists it in the DBC File Manager, where it can also be saved as a `.dbc` file:
 - A reply arrives a few milliseconds after the value was measured; for most comparisons that's small next to the
   poll interval, and the help page says so.
 
-**As built (phase 4):** `bus_protocols/obd2_dbc.{h,cpp}` writes the DBC as text, and SavvyCAN's own loader reads it,
+**As built (phase 4):** `src/protocols/obd2_dbc.{h,cpp}` writes the DBC as text, and SavvyCAN's own loader reads it,
 so its multiplex links are the ones any DBC file gets. Make DBC... asks where to save it (the file is kept, so a log
 can be decoded again later) and MainWindow loads it and attaches it to the bus. A DBC already loaded from the same
 file is reused when it has every ECU, and never replaced while loaded, since graphs may hold pointers to its
@@ -198,9 +198,9 @@ ignored multiplexing, so a multiplexed signal took values from every frame with 
 
 ## 6. Testing
 
-- `unit_tests/test_obd2_pids.cpp` (`TestObd2Pids`): every table entry decodes known replies to known values
+- `tests/unit/test_obd2_pids.cpp` (`TestObd2Pids`): every table entry decodes known replies to known values
   (worked examples from J1979), bitmap parsing across 0x00 to 0xC0, VIN from a reply of several frames.
-- `unit_tests/test_obd2_poller.cpp` (`TestObd2Poller`): a fake send callback and fake replies, as in
+- `tests/unit/test_obd2_poller.cpp` (`TestObd2Poller`): a fake send callback and fake replies, as in
   `TestIsoTpHandler`. Covers discovery with one and with several ECUs, 11 and 29-bit IDs, one request outstanding at
   a time, timeouts, 0x7F 0x78 then a real reply, negative replies marking a PID unsupported, the rate limit, and that
   the engine refuses Mode 04 and other services outside the safety list.
