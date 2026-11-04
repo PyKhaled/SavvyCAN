@@ -75,6 +75,26 @@ private:
     UDS_HANDLER *handler;
 };
 
+// OBD scripting entry point with an explicit read-only service allowlist.
+class OBDScriptHelper: public QObject
+{
+    Q_OBJECT
+public:
+    OBDScriptHelper(QJSEngine *engine);
+    ~OBDScriptHelper() override;
+public slots:
+    void setFilter(QJSValue id, QJSValue mask, QJSValue bus);
+    void clearFilters();
+    bool request(QJSValue bus, QJSValue id, QJSValue payload);
+    void setRxCallback(QJSValue cb);
+private slots:
+    void newISOMessage(ISOTP_MESSAGE msg);
+private:
+    QJSValue gotMessageFunction;
+    QJSEngine *scriptEngine;
+    ISOTP_HANDLER *handler;
+};
+
 class ScriptContainer : public QObject
 {
     Q_OBJECT
@@ -116,6 +136,7 @@ private:
     CANScriptHelper *canHelper;
     ISOTPScriptHelper *isoHelper;
     UDSScriptHelper *udsHelper;
+    OBDScriptHelper *obdHelper;
     QVector<QString> scriptParams;
 };
 

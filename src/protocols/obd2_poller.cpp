@@ -197,7 +197,22 @@ void Obd2Poller::service()
                 const PollItem &item = pollList[idx];
                 nextDue[idx] = now + item.intervalMs;
                 lastSent[idx] = ++sendCounter;
-                sendRequest({item.ecuReplyId, OBD2::mode01Request(item.pid), Kind::Poll}, now);
+                QByteArray payload = OBD2::mode01Request(item.pid);
+                if (multiPidRequests)
+                {
+                    for (int i = 0; i < pollList.size() && payload.size() < 7; ++i)
+                    {
+                        if (i == idx || nextDue[i] > now || pollList[i].ecuReplyId != item.ecuReplyId) continue;
+                        bool refused = false;
+                        for (const Ecu &ecu : ecuList)
+                            if (ecu.replyId == item.ecuReplyId && ecu.unsupportedPids.contains(pollList[i].pid)) refused = true;
+                        if (refused) continue;
+                        payload.append(static_cast<char>(pollList[i].pid));
+                        nextDue[i] = now + pollList[i].intervalMs;
+                        lastSent[i] = ++sendCounter;
+                    }
+                }
+                sendRequest({item.ecuReplyId, payload, Kind::Poll}, now);
             }
         }
     }
@@ -302,8 +317,15 @@ bool Obd2Poller::replyMatchesOutstanding(quint32 ecuReplyId, const QByteArray &p
     const QByteArray &req = outstanding.request.payload;
     if (outstanding.request.ecuReplyId != 0 && outstanding.request.ecuReplyId != ecuReplyId) return false;
     if (static_cast<quint8>(payload[0]) != static_cast<quint8>(req[0]) + OBD2::POSITIVE_REPLY_OFFSET) return false;
-    //the first PID of the reply is the first one asked for
-    if (req.size() >= 2 && (payload.size() < 2 || payload[1] != req[1])) return false;
+    //Any requested PID can begin a multi-PID response.
+    if (req.size() >= 2)
+    {
+        if (payload.size() < 2) return false;
+        bool found = false;
+        for (int i = 1; i < req.size(); ++i)
+            if (static_cast<quint8>(payload[1]) == static_cast<quint8>(req[i])) found = true;
+        if (!found) return false;
+    }
     return true;
 }
 

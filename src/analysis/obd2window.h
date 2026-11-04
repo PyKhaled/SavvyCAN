@@ -143,6 +143,7 @@ private:
     QPushButton *btnVin;
     QComboBox *cbVinEcu;
     QCheckBox *ckShowAll;
+    QCheckBox *ckMultiPid;
     QTableWidget *pidTable;
     QPushButton *btnStart;
     QPushButton *btnStop;

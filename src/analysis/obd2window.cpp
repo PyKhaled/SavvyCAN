@@ -103,6 +103,9 @@ void Obd2Window::buildLayout(int numBuses)
     ckShowAll = new QCheckBox(tr("Show unsupported PIDs"));
     ckShowAll->setObjectName("showAllCheck");
     ckShowAll->setToolTip(tr("After discovery, also list the PIDs the ECUs didn't report as supported"));
+    ckMultiPid = new QCheckBox(tr("Request up to 6 PIDs at once"));
+    ckMultiPid->setObjectName("multiPidCheck");
+    ckMultiPid->setToolTip(tr("Optional Mode 01 batching. Some ECUs ignore multi-PID requests; one PID per request is the default."));
 
     cbVinEcu = new QComboBox;
     btnVin = new QPushButton(tr("Read VIN"));
@@ -116,6 +119,7 @@ void Obd2Window::buildLayout(int numBuses)
     setup->addWidget(spinRate, 0, 5);
     setup->addWidget(btnDiscover, 1, 0, 1, 2);
     setup->addWidget(ckShowAll, 1, 2, 1, 2);
+    setup->addWidget(ckMultiPid, 2, 0, 1, 3);
     setup->addWidget(new QLabel(tr("VIN from:")), 1, 4);
     QHBoxLayout *vinRow = new QHBoxLayout;
     vinRow->addWidget(cbVinEcu, 1);
@@ -187,6 +191,7 @@ void Obd2Window::buildLayout(int numBuses)
     connect(spinRate, &QSpinBox::valueChanged, this, &Obd2Window::rateChanged);
     connect(btnDiscover, &QPushButton::clicked, this, &Obd2Window::discover);
     connect(ckShowAll, &QCheckBox::toggled, this, &Obd2Window::rebuildTable);
+    connect(ckMultiPid, &QCheckBox::toggled, this, [this](bool enabled) { poller->setMultiPidRequests(enabled); });
     connect(btnVin, &QPushButton::clicked, this, &Obd2Window::readVin);
     connect(btnStart, &QPushButton::clicked, this, &Obd2Window::startPolling);
     connect(btnStop, &QPushButton::clicked, this, &Obd2Window::stopPolling);
@@ -641,6 +646,7 @@ QJsonObject Obd2Window::pollSetToJson() const
     json["bus"] = qMax(0, cbBus->currentIndex());
     json["addressing"] = cbAddressing->currentIndex() == 1 ? "29-bit" : "11-bit";
     json["maxRequestRate"] = spinRate->value();
+    json["multiPidRequests"] = ckMultiPid->isChecked();
     json["items"] = items;
     return json;
 }
@@ -674,6 +680,7 @@ bool Obd2Window::pollSetFromJson(const QJsonObject &json, QString *error)
     if (bus >= 0 && bus < cbBus->count()) cbBus->setCurrentIndex(bus);
     cbAddressing->setCurrentIndex(json["addressing"].toString() == "29-bit" ? 1 : 0);
     if (json.contains("maxRequestRate")) spinRate->setValue(json["maxRequestRate"].toInt());
+    ckMultiPid->setChecked(json["multiPidRequests"].toBool(false));
 
     updatingTable = true;
     for (int row = 0; row < pidTable->rowCount(); row++) pidTable->item(row, COL_POLL)->setCheckState(Qt::Unchecked);

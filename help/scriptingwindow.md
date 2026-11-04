@@ -73,6 +73,17 @@ isotp.clearFilters() - Clear all ISO-TP filters and no longer receive ISO-TP tra
 
 isotp.sendISOTP(bus, id, length, data) - As in the can version. The difference here is that ISO-TP messages can be longer than 8 bytes and so might get turned into a multi-frame set of messages with flow control. This is handled for you by SavvyCAN so you needn't handle of the details of the exchange.
 
+The obd Object
+==============
+
+`obd` provides ISO-TP access for read-only OBD-II services. `obd.setFilter(id, mask, bus)` registers reply IDs,
+`obd.clearFilters()` removes them, and `obd.request(bus, id, payload)` sends the payload byte array to the request
+ID. The helper accepts only Mode 01, Mode 09, and Mode 22 requests; it refuses other service bytes. Received
+messages are passed to `gotOBDMessage(bus, id, length, data)`. Mode 22 identifiers and response decoding depend on
+the vehicle; scripts must supply the DID and interpret its returned bytes.
+
+Example: `obd.request(0, 0x7E0, [0x22, 0xF1, 0x90])` requests DID F190 from the ECU at 0x7E8.
+
 
 The uds Object
 ===============

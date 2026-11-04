@@ -47,6 +47,9 @@ public:
         int intervalMs;         //0 polls as often as the others and the rate limit allow
     };
 
+    void setMultiPidRequests(bool enabled) { multiPidRequests = enabled; }
+    bool multiPidRequestsEnabled() const { return multiPidRequests; }
+
     struct Ecu
     {
         quint32 replyId;
@@ -156,6 +159,7 @@ private:
     int replyTimeoutMs = DEFAULT_REPLY_TIMEOUT_MS;
     int pendingTimeoutMs = DEFAULT_PENDING_TIMEOUT_MS;
     int maxRequestRate = DEFAULT_MAX_REQUEST_RATE;
+    bool multiPidRequests = false;
 
     QList<PollItem> pollList;
     QVector<qint64> nextDue;    //per poll item: when it may be sent again

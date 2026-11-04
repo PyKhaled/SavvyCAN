@@ -8,8 +8,9 @@ battery voltage and so on) over and over, and shows the answers. The requests an
 like any other traffic, so a log saved while polling holds them next to whatever else was captured, for example
 another bus you're logging at the same time.
 
-The poller only reads. It sends nothing but Mode 01 (current data) and Mode 09 (vehicle information) requests: it
-never clears fault codes or sends anything that changes the vehicle.
+The window only reads Mode 01 (current data) and Mode 09 (vehicle information). Scripts using the `obd` object may
+also send Mode 22 (read data by identifier). None of these interfaces clears fault codes or sends commands that
+change the vehicle.
 
 
 Before You Start
@@ -34,6 +35,8 @@ Using the Window
 3. **Tick the PIDs to poll** in the Poll column. "Interval (ms)" is the time between two requests for that PID; 0
    asks for it as often as the other ticked PIDs and the rate limit allow. A slow-changing value such as the
    coolant temperature can have 1000 ms or more, so the fast ones get more of the bus.
+   **Request up to 6 PIDs at once** is an optional Mode 01 batching setting. It is off by default because some
+   ECUs don't support multi-PID requests; one PID per request remains the most compatible setting.
 4. **Start Polling.** The Value column shows each PID's latest value; Answers and Timeouts count the replies and the
    requests that got none. Stop ends polling, and so does closing the window.
 5. **Read VIN** asks the ECU picked next to it for the vehicle identification number.

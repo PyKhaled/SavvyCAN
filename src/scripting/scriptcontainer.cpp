@@ -17,6 +17,7 @@ ScriptContainer::ScriptContainer()
     canHelper = new CANScriptHelper(scriptEngine);
     isoHelper = new ISOTPScriptHelper(scriptEngine);
     udsHelper = new UDSScriptHelper(scriptEngine);
+    obdHelper = new OBDScriptHelper(scriptEngine);
     connect(&timer, SIGNAL(timeout()), this, SLOT(tick()));
 }
 
@@ -50,6 +51,13 @@ ScriptContainer::~ScriptContainer()
         delete udsHelper;
         udsHelper = nullptr;
     }
+    if (obdHelper)
+    {
+        obdHelper->clearFilters();
+        QCoreApplication::removePostedEvents(obdHelper);
+        delete obdHelper;
+        obdHelper = nullptr;
+    }
     qDebug() << "end of destruct";
 }
 
@@ -62,6 +70,7 @@ void ScriptContainer::compileScript()
     canHelper->clearFilters();
     isoHelper->clearFilters();
     udsHelper->clearFilters();
+    obdHelper->clearFilters();
 
     if (result.isError())
     {
@@ -86,6 +95,8 @@ void ScriptContainer::compileScript()
         scriptEngine->globalObject().setProperty("isotp", isoObj);
         QJSValue udsObj = scriptEngine->newQObject(udsHelper);
         scriptEngine->globalObject().setProperty("uds", udsObj);
+        QJSValue obdObj = scriptEngine->newQObject(obdHelper);
+        scriptEngine->globalObject().setProperty("obd", obdObj);
 
         //Find out which callbacks the script has created.
         setupFunction = scriptEngine->globalObject().property("setup");
@@ -99,6 +110,7 @@ void ScriptContainer::compileScript()
         canHelper->setRxCallback(canRxCallback);
         isoHelper->setRxCallback(scriptEngine->globalObject().property("gotISOTPMessage"));
         udsHelper->setRxCallback(scriptEngine->globalObject().property("gotUDSMessage"));
+        obdHelper->setRxCallback(scriptEngine->globalObject().property("gotOBDMessage"));
 
         tickFunction = scriptEngine->globalObject().property("tick");
 
@@ -488,4 +500,67 @@ void UDSScriptHelper::newUDSMessage(UDS_MESSAGE msg)
     for (int j = 0; j < msg.payload().length(); j++) dataBytes.setProperty(static_cast<quint32>(j), QJSValue((unsigned char)msg.payload()[j]));
     args.append(dataBytes);
     gotFrameFunction.call(args);
+}
+
+/* OBD script helper: Mode 01, 09 and 22 are the only accepted request services. */
+OBDScriptHelper::OBDScriptHelper(QJSEngine *engine)
+{
+    scriptEngine = engine;
+    handler = HandlerFactory::createISOTPHandler();
+    connect(handler, &ISOTP_HANDLER::newISOMessage, this, &OBDScriptHelper::newISOMessage);
+    handler->setReception(true);
+    handler->setFlowCtrl(true);
+}
+
+OBDScriptHelper::~OBDScriptHelper()
+{
+    delete handler;
+}
+
+void OBDScriptHelper::setFilter(QJSValue id, QJSValue mask, QJSValue bus)
+{
+    handler->addFilter(bus.toInt(), id.toUInt(), mask.toUInt());
+}
+
+void OBDScriptHelper::clearFilters()
+{
+    handler->clearAllFilters();
+}
+
+bool OBDScriptHelper::request(QJSValue bus, QJSValue id, QJSValue payload)
+{
+    if (!payload.isArray()) return false;
+    int length = payload.property("length").toInt();
+    if (length < 2 || length > 4095) return false;
+    QByteArray bytes(length, 0);
+    for (int i = 0; i < length; ++i)
+    {
+        int byte = payload.property(i).toInt();
+        if (byte < 0 || byte > 255) return false;
+        bytes[i] = static_cast<char>(byte);
+    }
+    quint8 service = static_cast<quint8>(bytes[0]);
+    if (service != 0x01 && service != 0x09 && service != 0x22) return false;
+    if (service == 0x22 && length < 3) return false;
+    quint32 requestId = id.toUInt();
+    handler->sendISOTPFrame(bus.toInt(), requestId, bytes);
+    return true;
+}
+
+void OBDScriptHelper::setRxCallback(QJSValue cb)
+{
+    gotMessageFunction = cb;
+}
+
+void OBDScriptHelper::newISOMessage(ISOTP_MESSAGE msg)
+{
+    if (!msg.isReceived() || !gotMessageFunction.isCallable()) return;
+    const QByteArray payload = msg.payload();
+    QJSValueList args;
+    args << msg.getBus() << msg.frameId() << static_cast<uint>(payload.size());
+    QJSValue bytes = scriptEngine->newArray(static_cast<uint>(payload.size()));
+    for (int i = 0; i < payload.size(); ++i)
+        bytes.setProperty(static_cast<quint32>(i), QJSValue(static_cast<unsigned char>(payload[i])));
+    args.append(bytes);
+    gotMessageFunction.call(args);
 }
