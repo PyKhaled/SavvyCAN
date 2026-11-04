@@ -35,8 +35,10 @@ opened by Help buttons inside SavvyCAN. Screenshots are kept in
 
 - [ISO-TP decoder](isotp_decoder.md)
 - [UDS scanner](uds_scanner.md)
-- [OBD-II poller](obd2.md)
-- [Scripting interface](scriptingwindow.md)
+- [OBD-II poller](obd2.md) — Mode 01 polling, optional multi-PID requests,
+  poll sets, and graphing; scripts also expose read-only Mode 01, 09, and 22.
+- [Scripting interface](scriptingwindow.md) — JavaScript APIs for CAN, ISO-TP,
+  UDS, and read-only OBD-II requests.
 - [Custom sender](customsender.md)
 - [Fuzzing window](fuzzingwindow.md)
 - [Logs and DBC files on GitHub](github.md)

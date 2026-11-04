@@ -111,8 +111,11 @@ The offscreen Qt platform lets widget tests run on machines without a display.
 ## Documentation
 
 - [Application help](help/README.md) — user guides for windows and workflows.
-- [Development roadmaps](docs/README.md) — feature plans and implementation
-  notes.
+- [OBD-II poller](help/obd2.md) — discover ECUs, poll Mode 01 values, save poll
+  sets, and graph captured values. Mode 01 batching is optional; scripts can
+  send read-only Mode 01, Mode 09, and Mode 22 requests through the `obd` API.
+- [Scripting interface](help/scriptingwindow.md) — JavaScript access to CAN,
+  ISO-TP, UDS, and read-only OBD-II services.
 - [Scripts](scripts/README.md) — test runner and translation utilities.
 
 ## Repository layout
@@ -123,8 +126,8 @@ The offscreen Qt platform lets widget tests run on machines without a display.
   separate qmake test project.
 - `resources/`, `help/`, `examples/`, and `translations/` hold application
   assets and user-facing data.
-- `docs/`, `scripts/`, `tools/`, and `packaging/` hold developer documentation,
-  maintenance scripts, utilities, and platform packaging files.
+- `scripts/`, `tools/`, and `packaging/` hold maintenance scripts, utilities,
+  and platform packaging files.
 
 ### Used Items Requiring Attribution
 

@@ -55,9 +55,10 @@ asked for again from that ECU.
 Poll Sets
 =========
 
-Save Poll Set... writes the bus, addressing, rate limit and the ticked PIDs (with their intervals) to an `.obd` file;
-Load Poll Set... ticks them again. A poll set made for one vehicle works on another as long as its ECUs use the same
-addresses; PIDs a vehicle doesn't support are refused and then skipped.
+Save Poll Set... writes the bus, addressing, rate limit, batching choice and the ticked PIDs (with their intervals) to
+an `.obd` file; Load Poll Set... restores those settings. Older poll sets without a batching choice keep the
+default, one-PID-per-request behavior. A poll set made for one vehicle works on another as long as its ECUs use the
+same addresses; PIDs a vehicle doesn't support are refused and then skipped.
 
 
 Graphing the Values
