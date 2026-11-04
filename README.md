@@ -45,62 +45,75 @@ http://www.qcustomplot.com/
 However, this source code is integrated into the source for SavvyCAN and one isn't required
 to download it separately.
 
-This project requires 5.14.0 or higher because of a dependency on QtSerialBus and other new additions to Qt.
-
-NOTE: There is a work-in-progress branch QT6WIP that can compile with QT6 (Tested with Qt 6.9 on 2026-03-11). Support for QT6 is approximately "beta" quality. Most all functions should work, please send issues if found.
+The CMake build requires CMake 3.21 or newer, Qt 6.4 or newer with the Core,
+Gui, PrintSupport, SerialBus, SerialPort, Widgets, Help, Network, OpenGL, and
+QML modules, and OpenGL development files. libusb-1.0 is optional and enables
+pico-flexray support when available. The qmake project requires Qt 6.5 or newer.
 
 It appears that the current binary build for MacOS requires at least MacOS 10.15
 
-## Instructions for compiling:
+## Build with CMake
 
-[Download the newest stable version of Qt directly from qt.io](https://www.qt.io/download/) (You need 5.14.x or newer)
-
-```sh
-cd ~
-
-git clone https://github.com/collin80/SavvyCAN.git
-
-cd SavvyCAN
-
-~/Qt/5.14/gcc_64/bin/qmake
-
-make
-```
-
-Now run SavvyCAN
-
-```
-./SavvyCAN
-```
-
-On linux systems you can run `./install.sh` to create a desktop shortcut.
-
-### Compiling in debug mode for additional information
+Install CMake and Qt 6 with the modules listed above. Then configure and build:
 
 ```sh
-qmake CONFIG+=debug
-
-make
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --parallel
 ```
 
-## What to do if your compile failed?
+Run the application from the build directory:
 
-The very first thing to do is try:
+```sh
+# Linux
+./build/SavvyCAN
 
-```
-qmake
-
-make clean
-
-make
+# macOS
+open build/SavvyCAN.app
 ```
 
-Did that fix it? Great! If not, ensure that you selected SerialBUS support
-when you installed Qt.
+On Linux, `./install.sh` creates a desktop shortcut.
 
-### What to do if `qmake` fails with error `Project ERROR: Unknown module(s) in QT: qml serialbus help` on Ubuntu? :
+### Build with qmake
 
-`sudo apt install libqt5serialbus5-dev libqt5serialport5-dev qtdeclarative5-dev qttools5-dev`
+The qmake project is also available for Qt Creator and requires Qt 6.5 or newer:
+
+```sh
+qmake6 SavvyCAN.pro
+make -j
+```
+
+## Build and run tests
+
+Configure with `BUILD_TESTS=ON` to build the maintained unit-test suite along
+with the application. The test runner script performs the configure, build, and
+CTest steps:
+
+```sh
+./scripts/run_tests.sh
+```
+
+You can optionally pass a build directory:
+
+```sh
+./scripts/run_tests.sh /tmp/savvycan-tests
+```
+
+To run the steps manually:
+
+```sh
+cmake -S . -B build-tests -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+cmake --build build-tests --parallel
+QT_QPA_PLATFORM=offscreen ctest --test-dir build-tests --output-on-failure
+```
+
+The offscreen Qt platform lets widget tests run on machines without a display.
+
+## Documentation
+
+- [Application help](help/README.md) — user guides for windows and workflows.
+- [Development roadmaps](docs/README.md) — feature plans and implementation
+  notes.
+- [Scripts](scripts/README.md) — test runner and translation utilities.
 
 ### Used Items Requiring Attribution
 
