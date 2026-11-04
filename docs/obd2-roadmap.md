@@ -206,6 +206,8 @@ ignored multiplexing, so a multiplexed signal took values from every frame with 
   the engine refuses Mode 04 and other services outside the safety list.
 - Phase 4: the generated DBC saved and loaded again gives the same messages and signals, and decoding a recorded
   reply through the DBC gives the same value as the PID table.
+- Run the repository's complete unit-test suite with `./scripts/run_tests.sh`; it configures the root CMake project
+  with `BUILD_TESTS=ON` and runs CTest using Qt's offscreen platform.
 - Builds and tests in the `savvycan-test:qt6.10` Docker image, as the other fork work.
 - On a car or a bench ECU: discovery, a poll set at 10 PIDs, a log saved with the other bus, graphs of an OBD value
   and a signal from the other bus side by side. A recorded log of real OBD traffic goes into the test data so phase

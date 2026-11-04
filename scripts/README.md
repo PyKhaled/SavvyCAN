@@ -1,13 +1,23 @@
 # Scripts
 
-To run this scripts, first you must authorize your terminal to run:
+The test runner configures the root CMake project with tests enabled, builds the
+application and unit tests, then runs CTest with Qt's offscreen platform:
 
 ```bash
-chmod +x script/*.sh
+./scripts/run_tests.sh
 ```
 
-Then you can run by using this command:
+Pass a build directory to use a different location:
 
 ```bash
-./scripts/the/script/you/want/to/run
+./scripts/run_tests.sh /tmp/savvycan-tests
+```
+
+The translation scripts require the corresponding Qt Linguist tool on `PATH`.
+They locate the project file relative to the script, so they can be run from
+any working directory:
+
+```bash
+./scripts/build_translations.sh
+./scripts/update_translations.sh
 ```

@@ -1,0 +1,42 @@
+# SavvyCAN Help
+
+These guides explain the application windows and workflows. Some are also
+opened by Help buttons inside SavvyCAN. Screenshots are kept in
+[`images/`](images/).
+
+## Start here and configure connections
+
+- [Main screen](mainscreen.md)
+- [Preferences](preferences.md)
+- [Add a connection](newconnection.md)
+- [Connection window](connectionwindow.md)
+
+## Capture, playback, and frame tools
+
+- [Playback window](playbackwindow.md)
+- [Frame details](framedetails.md)
+- [Sniffer](sniffer.md)
+- [Flow view](flowview.md)
+- [Temporal window](temporalwindow.md)
+- [CAN bridge](canbridge.md)
+- [Bisector](bisector.md)
+- [File comparison](filecomparison.md)
+
+## DBC and signal analysis
+
+- [DBC file manager](dbc_manager.md)
+- [DBC message and signal editors](dbc_editor.md)
+- [Signal editor](signaleditor.md)
+- [Graphing window](graphwindow.md)
+- [Graph setup](graphsetup.md)
+- [Range state window](rangestate.md)
+
+## Protocols, scripting, and integrations
+
+- [ISO-TP decoder](isotp_decoder.md)
+- [UDS scanner](uds_scanner.md)
+- [OBD-II poller](obd2.md)
+- [Scripting interface](scriptingwindow.md)
+- [Custom sender](customsender.md)
+- [Fuzzing window](fuzzingwindow.md)
+- [Logs and DBC files on GitHub](github.md)
