@@ -58,8 +58,20 @@ Install CMake and Qt 6 with the modules listed above. Then configure and build:
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release --parallel
+cmake --build build --config Release --parallel 2
 ```
+
+The build is limited to two parallel jobs to reduce CPU and memory usage.
+
+You can also build with the repository's Makefile:
+
+```sh
+make
+```
+
+Use `make debug` or `make test` for a debug build or to run the tests. Override
+the default build directories with `BUILD_DIR`, `DEBUG_BUILD_DIR`, or
+`TEST_BUILD_DIR` when needed.
 
 Run the application from the build directory:
 
@@ -79,7 +91,7 @@ The qmake project is also available for Qt Creator and requires Qt 6.5 or newer:
 
 ```sh
 qmake6 SavvyCAN.pro
-make -j
+make -j2
 ```
 
 ## Build and run tests
@@ -102,7 +114,7 @@ To run the steps manually:
 
 ```sh
 cmake -S . -B build-tests -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
-cmake --build build-tests --parallel
+cmake --build build-tests --parallel 2
 QT_QPA_PLATFORM=offscreen ctest --test-dir build-tests --output-on-failure
 ```
 

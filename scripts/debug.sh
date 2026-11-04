@@ -10,7 +10,7 @@ if [[ "$BUILD_DIR" != /* ]]; then
 fi
 
 cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Debug
-cmake --build "$BUILD_DIR" --config Debug --parallel
+cmake --build "$BUILD_DIR" --config Debug --parallel 2
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
     APP_PATH="$BUILD_DIR/SavvyCAN.app/Contents/MacOS/SavvyCAN"

@@ -10,4 +10,4 @@ if [[ "$BUILD_DIR" != /* ]]; then
 fi
 
 cmake -S "$PROJECT_ROOT" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
-cmake --build "$BUILD_DIR" --config Release --parallel
+cmake --build "$BUILD_DIR" --config Release --parallel 2
