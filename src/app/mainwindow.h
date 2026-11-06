@@ -131,7 +131,6 @@ private slots:
     void handleSaveDecodedCsv();
     void connectionStatusUpdated(int conns);
     void gridClicked(QModelIndex);
-    void gridDoubleClicked(QModelIndex);
     void gridContextMenuRequest(QPoint pos);
     void copyFromTable();
     void setupAddToNewGraph();
@@ -261,6 +260,8 @@ private:
     QLabel lbStatusConnected;
     QLabel lbStatusFilename;
     QLabel lbStatusDatabase;
+    QLabel lbStatusFrames;
+    QLabel lbStatusRate;
     QLabel lbHelp;
     int normalRowHeight;
     bool isConnected;

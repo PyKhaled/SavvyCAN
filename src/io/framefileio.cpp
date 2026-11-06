@@ -6,6 +6,9 @@
 #include <QRegularExpression>
 #include <QtEndian>
 #include <QSettings>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 #include <iostream>
 #include <memory>
 #include "pcaplite.h"
@@ -49,6 +52,7 @@ QStringList FrameFileIO::saveFilters()
     filters.append(QString(tr("CANalyzer Ascii Log (*.asc *.ASC)")));       // 10
     filters.append(QString(tr("CARBUS Analyzer (*.trc *.TRC)")));           // 11
     filters.append(QString(tr("PCAN Viewer (*.trc *.TRC)")));               // 12
+    filters.append(QString(tr("SavvyCAN JSON Lines (*.jsonl *.ndjson)")));  // 13
     return filters;
 }
 
@@ -109,6 +113,10 @@ bool FrameFileIO::saveFrameFileAs(QString &filename, int filterIndex, const QVec
     case 12:
         if (!filename.contains('.')) filename += ".trc";
         result = savePCANFile(filename, frameCache);
+        break;
+    case 13:
+        if (!filename.contains('.')) filename += ".jsonl";
+        result = saveJsonLines(filename, frameCache);
         break;
     }
 
@@ -208,6 +216,7 @@ QStringList FrameFileIO::loadFilters()
     filters.append(QString(tr("Wireshark SocketCAN (*.pcap *.PCAP")));      // 25
     filters.append(QString(tr("IXXAT CSV export (*.csv)")));                // 26
     filters.append(QString(tr("CANWise Log (*.log)")));                     // 27
+    filters.append(QString(tr("SavvyCAN JSON Lines (*.jsonl *.ndjson)")));  // 28
     return filters;
 }
 
@@ -243,6 +252,7 @@ bool FrameFileIO::loadFrameFileAs(const QString &filename, int filterIndex, QVec
     case 25: return loadWiresharkSocketCANFile(filename, frameCache);
     case 26: return loadIXXATCsvFile(filename, frameCache);
     case 27: return loadCanWise(filename, frameCache);
+    case 28: return loadJsonLines(filename, frameCache);
     }
     return false;
 }
@@ -308,6 +318,7 @@ bool FrameFileIO::loadFrameFile(QString &fileName, QVector<CommFrame>* frameCach
 //whether a file could be loaded or not by a given loader. The loader return is still used in case the guess was wrong.
 bool FrameFileIO::autoDetectLoadFile(QString filename, QVector<CommFrame>* frames)
 {
+    if (isJsonLines(filename) && loadJsonLines(filename, frames)) return true;
     qDebug() << "Attempting Canalyzer BLF";
     if (isCanalyzerBLF(filename))
     {
@@ -581,6 +592,118 @@ bool FrameFileIO::autoDetectLoadFile(QString filename, QVector<CommFrame>* frame
     msgBox.exec();
     qDebug() << "Nothing worked... sorry...";
     return false;
+}
+
+// SavvyCAN JSON Lines schema v1. One object per line; integer microseconds are strings so
+// timestamps remain exact beyond JSON's IEEE-754 integer range.
+bool FrameFileIO::isJsonLines(QString filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+    while (!file.atEnd()) {
+        const QByteArray line = file.readLine().trimmed();
+        if (line.isEmpty()) continue;
+        QJsonParseError error;
+        const QJsonDocument doc = QJsonDocument::fromJson(line, &error);
+        return error.error == QJsonParseError::NoError && doc.isObject()
+               && doc.object().value("format").toString() == "savvycan-jsonl"
+               && doc.object().value("version").toInt() == 1;
+    }
+    return false;
+}
+
+bool FrameFileIO::loadJsonLines(QString filename, QVector<CommFrame>* frames)
+{
+    if (!frames) return false;
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+    QVector<CommFrame> parsedFrames;
+    bool haveHeader = false;
+    while (!file.atEnd()) {
+        const QByteArray line = file.readLine().trimmed();
+        if (line.isEmpty()) continue;
+        QJsonParseError error;
+        const QJsonDocument doc = QJsonDocument::fromJson(line, &error);
+        if (error.error != QJsonParseError::NoError || !doc.isObject()) return false;
+        const QJsonObject obj = doc.object();
+        if (!haveHeader) {
+            if (obj.value("format").toString() != "savvycan-jsonl" || obj.value("version").toInt(-1) != 1) return false;
+            haveHeader = true;
+            continue;
+        }
+        bool timestampOk = false;
+        const qint64 timestamp = obj.value("timestamp_us").toString().toLongLong(&timestampOk);
+        const QJsonValue idValue = obj.value("id");
+        const double idNumber = idValue.toDouble(-1);
+        const QString direction = obj.value("direction").toString();
+        const QString dataHex = obj.value("data").toString();
+        const int bus = obj.value("bus").toInt(-1);
+        const int dlc = obj.value("dlc").toInt(-1);
+        const int type = obj.value("frame_type").toInt(CommFrame::CANDataFrame);
+        const bool extended = obj.value("extended").toBool(false);
+        const bool rtr = obj.value("rtr").toBool(false);
+        if (!timestampOk || !idValue.isDouble() || idNumber < 0 || idNumber > 0x1FFFFFFF
+            || idNumber != static_cast<double>(static_cast<quint32>(idNumber))
+            || (direction != "rx" && direction != "tx") || bus < 0 || bus > 255
+            || type < CommFrame::CANDataFrame || type > CommFrame::InvalidFrame || dlc < 0 || dlc > 64
+            || (dataHex.size() % 2)
+            || QByteArray::fromHex(dataHex.toLatin1()).toHex().compare(dataHex.toLatin1(), Qt::CaseInsensitive) != 0)
+            return false;
+        const QByteArray payload = QByteArray::fromHex(dataHex.toLatin1());
+        if ((type == CommFrame::RemoteRequestFrame) != rtr || (!extended && idNumber > 0x7FF)) return false;
+        if ((!rtr && payload.size() != dlc) || (rtr && (!payload.isEmpty() || dlc > 8))) return false;
+        CommFrame frame(static_cast<CommFrame::FrameType>(type));
+        frame.setFrameId(static_cast<quint32>(idNumber));
+        frame.setExtendedFrameFormat(obj.value("extended").toBool(false));
+        frame.setTimeStamp(CommFrame::TimeStamp::fromMicroSeconds(timestamp));
+        frame.setBus(static_cast<quint8>(bus));
+        frame.setReceived(direction == "rx");
+        frame.setPayload(payload);
+        if (rtr) frame.setFrameType(CommFrame::RemoteRequestFrame);
+        if (rtr) frame.setRemoteDlc(static_cast<quint8>(dlc));
+        if (frame.frameType() == CommFrame::ErrorFrame)
+            frame.setError(CommFrame::FrameErrors(obj.value("error").toInt()));
+        frame.setFlexibleDataRateFormat(obj.value("fd").toBool(frame.frameType() == CommFrame::CANFDDataFrame));
+        frame.setBitrateSwitch(obj.value("brs").toBool(false));
+        frame.setErrorStateIndicator(obj.value("esi").toBool(false));
+        frame.setTimeDelta(static_cast<quint64>(obj.value("time_delta").toString().toULongLong()));
+        frame.setFrameCount(static_cast<quint32>(obj.value("frame_count").toString().toULongLong()));
+        parsedFrames.append(frame);
+    }
+    if (!haveHeader) return false;
+    *frames = parsedFrames;
+    return true;
+}
+
+bool FrameFileIO::saveJsonLines(QString filename, const QVector<CommFrame>* frames)
+{
+    if (!frames) return false;
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+    auto writeObject = [&file](const QJsonObject &obj) {
+        return file.write(QJsonDocument(obj).toJson(QJsonDocument::Compact) + '\n') >= 0;
+    };
+    if (!writeObject({{"format", "savvycan-jsonl"}, {"version", 1}})) return false;
+    for (const CommFrame &frame : *frames) {
+        const CommFrame::TimeStamp stamp = frame.timeStamp();
+        const qint64 timestamp = stamp.seconds() * 1000000 + stamp.microSeconds();
+        QJsonObject obj{{"timestamp_us", QString::number(timestamp)},
+                        {"id", static_cast<double>(frame.frameId())},
+                        {"extended", frame.hasExtendedFrameFormat()},
+                        {"rtr", frame.frameType() == CommFrame::RemoteRequestFrame},
+                        {"direction", frame.isReceived() ? "rx" : "tx"},
+                        {"bus", frame.getBus()}, {"dlc", frame.frameType() == CommFrame::RemoteRequestFrame
+                                                                  ? frame.remoteDlc() : frame.payload().size()},
+                        {"data", QString::fromLatin1(frame.payload().toHex().toUpper())},
+                        {"frame_type", static_cast<int>(frame.frameType())},
+                        {"error", static_cast<int>(frame.error().toInt())},
+                        {"fd", frame.hasFlexibleDataRateFormat()},
+                        {"brs", frame.hasBitrateSwitch()}, {"esi", frame.hasErrorStateIndicator()},
+                        {"time_delta", QString::number(frame.getTimeDelta())},
+                        {"frame_count", QString::number(frame.getFrameCount())}};
+        if (!writeObject(obj)) return false;
+    }
+    return file.flush();
 }
 
 

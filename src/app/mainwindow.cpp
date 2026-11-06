@@ -171,7 +171,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //handlers fror interactions with the main can frame view table
     connect(ui->canFramesView, &QAbstractItemView::clicked, this, &MainWindow::gridClicked);
-    connect(ui->canFramesView, &QAbstractItemView::doubleClicked, this, &MainWindow::gridDoubleClicked);
+    connect(ui->canFramesView->selectionModel(), &QItemSelectionModel::currentRowChanged,
+            this, [this, proxyModel](const QModelIndex &current, const QModelIndex &) {
+        if (!current.isValid()) return;
+        const QModelIndex sourceIndex = proxyModel->mapToSource(current);
+        const QVector<CommFrame> *frames = model->getListReference();
+        if (sourceIndex.row() < 0 || sourceIndex.row() >= frames->size()) return;
+        const CommFrame &frame = frames->at(sourceIndex.row());
+        emit sendCenterTimeID(frame.frameId(), frame.timeStamp().microSeconds() / 1000000.0);
+    });
     ui->canFramesView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     copyAct = new QAction(tr("Copy"), this);
@@ -196,6 +204,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->listLengthFilters, &QListWidget::itemChanged, this, &MainWindow::lengthFilterListItemChanged);
 
     connect(ui->btnCaptureToggle, &QAbstractButton::clicked, this, &MainWindow::toggleCapture);
+    connect(ui->actionToggleCapture, &QAction::triggered, this, &MainWindow::toggleCapture);
     connect(ui->btnClearFrames, &QAbstractButton::clicked, this, &MainWindow::clearFrames);
     connect(ui->btnNormalize, &QAbstractButton::clicked, this, &MainWindow::normalizeTiming);
     connect(ui->btnFilterAll, &QAbstractButton::clicked, this, &MainWindow::filterSetAll);
@@ -213,6 +222,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     lbStatusConnected.setText(tr("Connected to 0 buses"));
+    lbStatusFrames.setText(tr("Frames: 0"));
+    lbStatusRate.setText(tr("Rate: 0 fps"));
     lbHelp.setText(tr("Press F1 on any screen for help"));
     lbHelp.setAlignment(Qt::AlignCenter);
     QFont boldFont;
@@ -223,6 +234,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->insertWidget(0, &lbStatusConnected, 1);
     ui->statusBar->insertWidget(1, &lbStatusFilename, 1);
     ui->statusBar->insertWidget(2, &lbHelp, 1);
+    ui->statusBar->addPermanentWidget(&lbStatusFrames);
+    ui->statusBar->addPermanentWidget(&lbStatusRate);
     //ui->statusBar->addWidget(&lbStatusDatabase);
     ui->lblRemoteConn->setVisible(false);
     ui->lineRemoteKey->setVisible(false);
@@ -970,14 +983,7 @@ void MainWindow::gridClicked(QModelIndex idx)
     else {
         ui->canFramesView->resizeRowToContents(idx.row());
     }
-}
 
-void MainWindow::gridDoubleClicked(QModelIndex idx)
-{
-    qDebug() << "Grid double clicked";
-    //grab ID and timestamp and send them away
-    CommFrame frame = model->getListReference()->at(idx.row());
-    emit sendCenterTimeID(frame.frameId(), frame.timeStamp().microSeconds() / 1000000.0);
 }
 
 void MainWindow::gridContextMenuRequest(QPoint pos)
@@ -1393,6 +1399,8 @@ void MainWindow::tickGUIUpdate()
         if (rxFrames > 0 && /*allowCapture && */ ui->cbAutoScroll->isChecked())
                 ui->canFramesView->scrollToBottom();
         ui->lbFPS->setText(QString::number(framesPerSec));
+        lbStatusFrames.setText(tr("Frames: %1").arg(model->rowCount()));
+        lbStatusRate.setText(tr("Rate: %1 fps").arg(framesPerSec));
         if (rxFrames > 0)
         {
             bDirty = true;
@@ -2537,9 +2545,15 @@ void MainWindow::toggleCapture()
 {
     allowCapture = !allowCapture;
     if (allowCapture)
+    {
         ui->btnCaptureToggle->setText("Suspend Capturing");
+        ui->actionToggleCapture->setText(tr("Pause Capture"));
+    }
     else
+    {
         ui->btnCaptureToggle->setText("Restart Capturing");
+        ui->actionToggleCapture->setText(tr("Resume Capture"));
+    }
 
     emit suspendCapturing(!allowCapture);
 }

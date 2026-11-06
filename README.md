@@ -32,6 +32,7 @@ of this program. It can load and save in several formats:
 10. CANDump / Kayak (Read only)
 11. PCAN Viewer (Read Only)
 12. Wireshark socketcan PCAP file (Read only)
+13. SavvyCAN JSON Lines (`.jsonl` / `.ndjson`)
 
 ## Dependencies
 
@@ -83,7 +84,7 @@ Run the application from the build directory:
 open build/SavvyCAN.app
 ```
 
-On Linux, `./install.sh` creates a desktop shortcut.
+On Linux, `./packaging/install-linux.sh` creates a desktop shortcut.
 
 ### Build with qmake
 
@@ -128,6 +129,8 @@ The offscreen Qt platform lets widget tests run on machines without a display.
   send read-only Mode 01, Mode 09, and Mode 22 requests through the `obd` API.
 - [Scripting interface](help/scriptingwindow.md) — JavaScript access to CAN,
   ISO-TP, UDS, and read-only OBD-II services.
+- [SavvyCAN JSON Lines format](help/jsonl-format.md) — versioned streaming
+  capture format for scripts and other tools.
 - [Scripts](scripts/README.md) — test runner and translation utilities.
 
 ## Repository layout

@@ -456,6 +456,35 @@
     </item>
    </layout>
   </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="windowTitle">
+    <string>Workspace</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonStyle::ToolButtonTextOnly</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSetup"/>
+   <addaction name="separator"/>
+   <addaction name="actionOpen_Log_File"/>
+   <addaction name="actionSave_Log_File"/>
+   <addaction name="separator"/>
+   <addaction name="actionToggleCapture"/>
+   <addaction name="separator"/>
+   <addaction name="actionGraph_Dta"/>
+   <addaction name="actionFlow_View"/>
+   <addaction name="action_Playback"/>
+   <addaction name="actionSniffer"/>
+   <addaction name="actionFrame_Search"/>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -532,10 +561,21 @@
     </property>
     <addaction name="actionSetup"/>
    </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="actionGraph_Dta"/>
+    <addaction name="actionFlow_View"/>
+    <addaction name="action_Playback"/>
+    <addaction name="actionSniffer"/>
+    <addaction name="actionFrame_Search"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menu_RE_Tools"/>
    <addaction name="menuSend_Frames"/>
    <addaction name="menuConnection"/>
+   <addaction name="menuWindow"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_Playback">
@@ -653,7 +693,12 @@
   </action>
   <action name="actionSetup">
    <property name="text">
-    <string>Open Connection Window</string>
+    <string>Connections...</string>
+   </property>
+  </action>
+  <action name="actionToggleCapture">
+   <property name="text">
+    <string>Pause Capture</string>
    </property>
   </action>
   <action name="actionConnect">

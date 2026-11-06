@@ -29,11 +29,19 @@ The main frame list takes up the majority of the main screen. This list consists
 The Bottom Statusbar
 ====================
 
-At the very bottom of the main screen is a status bar with three sections. 
+At the very bottom of the main screen is a status bar with connection status, the loaded file, frame count, and current frame rate. The help reminder is also shown there.
 
 * The first section shows the connection status. You will see the number of currently connected buses here.
 * The second section shows which file is currently loaded. This is updated by loading or saving.
 * The third section reminds you that F1 will bring up help. Most all screens have their own help.
+
+
+Workspace Toolbar And Tool Windows
+==================================
+
+The workspace toolbar provides quick access to connections, loading and saving logs, pausing or resuming capture, and opening Graph, Flow View, Playback, Sniffer, and Frame Search. These tools remain separate desktop windows and can be arranged independently. The Window menu provides another way to open the main analysis windows.
+
+Selecting a frame in the main list centers open Graph and Flow View windows on that frame's ID and timestamp. Double-clicking a row still expands or collapses its decoded signal details.
 
 
 The Rest of the Main Window
@@ -79,6 +87,7 @@ SavvyCAN can load and save in several formats (a few of which are listed below):
 	- GVRET: This is the native format for GVRET and SavvyCAN. The GVRET format saves more information such as the bus a frame originated on. This format is in CSV 
 	  (comma delimited) format and as such can easily be loaded into your favorite spreadsheet program as well.
 	- Generic ID/DATA - Another CSV format. This is a very cut down format with limited information.
+	- SavvyCAN JSON Lines - A versioned `.jsonl` format with one frame per line, suitable for streaming and scripts. See [the JSONL format guide](jsonl-format.md).
 	- BusMaster - This is the format output by the BusMaster CANBus program. BusMaster is an open source Windows-only somewhat clone of CANAlyzer (the 800lb gorilla in the analysis space). The ability to load and save in this format makes SavvyCAN fully capable of swapping data with BusMaster should you need to do so.
 	- Microchip - Format output by Microchip CANBus tools. Perhaps you have logs that were captured with a $100 Microchip dongle? You can load them in SavvyCAN.
 

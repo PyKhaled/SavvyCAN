@@ -82,6 +82,7 @@ public:
         isErrorStateIndicator(0x0),
         isLocalEcho(0x0),
         reserved0(0x0),
+        remoteRequestDlc(0),
         bus(0),
         timedelta(0),
         frameCount(0)
@@ -100,7 +101,8 @@ public:
         isErrorStateIndicator(0x0),
         isLocalEcho(0x0),
         reserved0(0x0),
-        dataBytes(data)
+        dataBytes(data),
+        remoteRequestDlc(0)
     {
         setFrameId(identifier);
     }
@@ -355,6 +357,10 @@ public:
 
     QByteArray payload() const { return dataBytes; }
 
+    // RTR frames carry no payload, but still announce the number of requested bytes.
+    constexpr quint8 remoteDlc() const noexcept { return remoteRequestDlc; }
+    constexpr void setRemoteDlc(quint8 dlc) noexcept { remoteRequestDlc = dlc; }
+
     constexpr void setTimeStamp(TimeStamp ts) noexcept { stamp = ts; }
 
     constexpr TimeStamp timeStamp() const noexcept { return stamp; }
@@ -415,6 +421,7 @@ private:
     quint8 reserved0:2;
 
     QByteArray dataBytes;
+    quint8 remoteRequestDlc;
     TimeStamp stamp;
     int bus;
     uint64_t timedelta;

@@ -19,6 +19,8 @@ private slots:
     void testOtherToolLogs();
     void testLogAutodetect();
     void testLogBadIndex();
+    void testJsonLinesRoundTrip();
+    void testJsonLinesRejectsMalformedInput();
     void testCANDOFile();
     void testBLFRejectsOversizedContainer();
     void testMicrochipBadLengths();
@@ -49,8 +51,8 @@ void TestFileDialogSplit::testLogFilterLists()
 {
     const QStringList load = FrameFileIO::loadFilters();
     const QStringList save = FrameFileIO::saveFilters();
-    QCOMPARE(load.count(), 28);
-    QCOMPARE(save.count(), 13);
+    QCOMPARE(load.count(), 29);
+    QCOMPARE(save.count(), 14);
     QVERIFY(load.first().startsWith("Autodetect"));
     QVERIFY(save.first().startsWith("GVRET"));
     // Vehicle Spy files can be loaded but not saved
@@ -78,6 +80,81 @@ void TestFileDialogSplit::testLogSaveAndLoad_data()
     QTest::newRow("CANalyzer ASC") << 10 << ".asc" << 14;
     QTest::newRow("CARBUS") << 11 << ".trc" << 16;
     QTest::newRow("PCAN") << 12 << ".trc" << 11;
+    QTest::newRow("SavvyCAN JSONL") << 13 << ".jsonl" << 28;
+}
+
+void TestFileDialogSplit::testJsonLinesRoundTrip()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    CommFrame frame;
+    frame.setFrameId(0x154);
+    frame.setExtendedFrameFormat(false);
+    frame.setTimeStamp(CommFrame::TimeStamp(1700000000, 123456));
+    frame.setBus(1);
+    frame.setReceived(true);
+    frame.setPayload(QByteArray::fromHex("003210000000E077"));
+    frame.setTimeDelta(987654321);
+    frame.setFrameCount(42);
+    CommFrame remote(CommFrame::RemoteRequestFrame);
+    remote.setFrameId(0x7DF);
+    remote.setExtendedFrameFormat(false);
+    remote.setReceived(false);
+    remote.setBus(2);
+    remote.setTimeStamp(CommFrame::TimeStamp::fromMicroSeconds(1700000000123456LL));
+    remote.setRemoteDlc(8);
+    CommFrame fd;
+    fd.setFrameId(0x18DAF110);
+    fd.setExtendedFrameFormat(true);
+    fd.setReceived(false);
+    fd.setFlexibleDataRateFormat(true);
+    fd.setBitrateSwitch(true);
+    fd.setErrorStateIndicator(true);
+    fd.setPayload(QByteArray::fromHex("000102030405060708090A0B"));
+    QVector<CommFrame> frames{frame, remote, fd};
+    QString path = dir.filePath("capture");
+    QVERIFY(FrameFileIO::saveFrameFileAs(path, 13, &frames));
+    QCOMPARE(path, dir.filePath("capture.jsonl"));
+    QVERIFY(FrameFileIO::isJsonLines(path));
+    QVector<CommFrame> loaded;
+    QVERIFY(FrameFileIO::loadFrameFileAs(path, 28, &loaded));
+    QCOMPARE(loaded.size(), 3);
+    QCOMPARE(loaded[0].timeStamp().seconds(), qint64(1700000000));
+    QCOMPARE(loaded[0].timeStamp().microSeconds(), qint64(123456));
+    QCOMPARE(loaded[0].frameId(), quint32(0x154));
+    QVERIFY(!loaded[0].hasExtendedFrameFormat());
+    QVERIFY(loaded[0].isReceived());
+    QCOMPARE(loaded[0].getBus(), quint8(1));
+    QCOMPARE(loaded[0].payload(), QByteArray::fromHex("003210000000E077"));
+    QCOMPARE(loaded[0].getTimeDelta(), quint64(987654321));
+    QCOMPARE(loaded[0].getFrameCount(), quint32(42));
+    QCOMPARE(loaded[1].frameType(), CommFrame::RemoteRequestFrame);
+    QCOMPARE(loaded[1].remoteDlc(), quint8(8));
+    QVERIFY(!loaded[1].isReceived());
+    QCOMPARE(loaded[1].timeStamp().seconds(), qint64(1700000000));
+    QCOMPARE(loaded[1].timeStamp().microSeconds(), qint64(123456));
+    QCOMPARE(loaded[2].frameId(), quint32(0x18DAF110));
+    QVERIFY(loaded[2].hasExtendedFrameFormat());
+    QVERIFY(!loaded[2].isReceived());
+    QVERIFY(loaded[2].hasFlexibleDataRateFormat());
+    QVERIFY(loaded[2].hasBitrateSwitch());
+    QVERIFY(loaded[2].hasErrorStateIndicator());
+    QCOMPARE(loaded[2].payload(), QByteArray::fromHex("000102030405060708090A0B"));
+}
+
+void TestFileDialogSplit::testJsonLinesRejectsMalformedInput()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString path = dir.filePath("bad.jsonl");
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Text));
+    file.write("{\"format\":\"savvycan-jsonl\",\"version\":1}\n{bad json}\n");
+    file.close();
+    QVector<CommFrame> frames{CommFrame(0x123, QByteArray::fromHex("01"))};
+    QVERIFY(!FrameFileIO::loadJsonLines(path, &frames));
+    QCOMPARE(frames.size(), 1); // malformed input does not partially replace the caller's capture
+    QCOMPARE(frames[0].frameId(), quint32(0x123));
 }
 
 void TestFileDialogSplit::testLogSaveAndLoad()

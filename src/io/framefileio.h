@@ -78,6 +78,7 @@ public:
     static bool loadWiresharkSocketCANFile(QString filename, QVector<CommFrame>* frames);
     static bool loadIXXATCsvFile(QString filename, QVector<CommFrame>* frames);
     static bool loadCanWise(QString filename, QVector<CommFrame>* frames);
+    static bool loadJsonLines(QString filename, QVector<CommFrame>* frames);
 
     //functions that pre-scan a file to try to figure out if they could read it. Used to automatically determine
     //file type and load it.
@@ -107,6 +108,7 @@ public:
     static bool isWiresharkSocketCANFile(QString filename);
     static bool isIXXATCsvFile(QString filename);
     static bool isCanWise(QString filename);
+    static bool isJsonLines(QString filename);
 
     static bool saveCRTDFile(QString, const QVector<CommFrame>*);
     static bool saveNativeCSVFile(QString, const QVector<CommFrame>*);
@@ -122,6 +124,7 @@ public:
     static bool saveCanalyzerASC(QString filename, const QVector<CommFrame>* frames);
     static bool saveCARBUSAnalzyer(QString filename, const QVector<CommFrame>* frames);
     static bool savePCANFile(QString filename, const QVector<CommFrame>* frames);
+    static bool saveJsonLines(QString filename, const QVector<CommFrame>* frames);
 
     static bool openContinuousNative();
     static bool closeContinuousNative();
