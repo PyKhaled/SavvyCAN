@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08151a">
+  <meta name="description" content="SavvyCAN is a free, open-source CAN bus capture and reverse-engineering tool for Windows, macOS, and Linux.">
+  <title>SavvyCAN — Make sense of the bus</title>
+  <link rel="icon" type="image/png" href="assets/savvycan-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="SavvyCAN home"><img src="assets/savvycan-icon.png" alt=""><span>SAVVY<span class="brand-light">CAN</span></span></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Open navigation"><i></i><i></i></button>
+    <nav id="main-nav" class="nav-links" aria-label="Main navigation">
+      <a href="#capabilities">Capabilities</a><a href="#workflow">How it works</a><a href="#downloads">Downloads</a>
+      <a class="nav-community" href="https://github.com/collin80/SavvyCAN/discussions" target="_blank" rel="noreferrer">Community <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="live-dot"></span> OPEN-SOURCE CAN ANALYSIS</div>
+        <h1>Make sense<br>of <em>the bus.</em></h1>
+        <p class="hero-lede">Capture, decode, and explore CAN traffic with a toolkit built for curious minds and real engineering work.</p>
+        <div class="hero-actions"><a class="button button-primary" href="#downloads">Get SavvyCAN <span aria-hidden="true">↓</span></a><a class="button button-quiet" href="https://github.com/PyKhaled/SavvyCAN" target="_blank" rel="noreferrer">Explore the source <span aria-hidden="true">↗</span></a></div>
+        <div class="platform-note"><span>WINDOWS</span><b>·</b><span>macOS</span><b>·</b><span>LINUX</span><b class="platform-sep">/</b><span>FREE &amp; OPEN SOURCE</span></div>
+      </div>
+      <div class="hero-art" aria-label="Illustration of live CAN frames flowing through a vehicle network">
+        <div class="art-label"><span>BUS 0</span><span class="art-status">● SAMPLE TOPOLOGY</span></div>
+        <svg class="network" viewBox="0 0 620 410" role="img" aria-label="Connected vehicle control modules"><defs><linearGradient id="wire" x1="0" x2="1"><stop stop-color="#4ddcc2" stop-opacity=".12"/><stop offset=".55" stop-color="#4ddcc2"/><stop offset="1" stop-color="#4ddcc2" stop-opacity=".12"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <g class="wires" fill="none" stroke="url(#wire)" stroke-width="1.5"><path d="M85 208H535M160 208V95H270M240 208V322H365M360 208V97H490M450 208V322H535M270 95V52M490 97V54M365 322V365M535 322V363"/><path d="M160 95H215M365 97H420M450 322H500" stroke-dasharray="4 7"/></g>
+          <g class="nodes"><circle cx="85" cy="208" r="6"/><circle cx="160" cy="208" r="4"/><circle cx="240" cy="208" r="4"/><circle cx="360" cy="208" r="4"/><circle cx="450" cy="208" r="4"/><circle cx="535" cy="208" r="6"/><circle cx="270" cy="95" r="5"/><circle cx="490" cy="97" r="5"/><circle cx="365" cy="322" r="5"/><circle cx="535" cy="322" r="5"/></g>
+          <g class="modules" font-family="DM Mono, monospace" text-anchor="middle"><g transform="translate(34 169)"><rect width="102" height="78" rx="5"/><path d="M0 22h102"/><text x="51" y="15">GATEWAY</text><text class="mod-main" x="51" y="50">0x7DF</text><text class="mod-sub" x="51" y="67">11 BIT · RX</text></g><g transform="translate(220 56)"><rect width="100" height="78" rx="5"/><path d="M0 22h100"/><text x="50" y="15">POWERTRAIN</text><text class="mod-main" x="50" y="50">0x0C1</text><text class="mod-sub" x="50" y="67">8 BYTES · 12 ms</text></g><g transform="translate(440 58)"><rect width="100" height="78" rx="5"/><path d="M0 22h100"/><text x="50" y="15">BODY</text><text class="mod-main" x="50" y="50">0x2A0</text><text class="mod-sub" x="50" y="67">8 BYTES · 20 ms</text></g><g transform="translate(315 283)"><rect width="100" height="78" rx="5"/><path d="M0 22h100"/><text x="50" y="15">INSTRUMENTS</text><text class="mod-main" x="50" y="50">0x4F1</text><text class="mod-sub" x="50" y="67">8 BYTES · 50 ms</text></g><g transform="translate(485 283)"><rect width="100" height="78" rx="5"/><path d="M0 22h100"/><text x="50" y="15">CHASSIS</text><text class="mod-main" x="50" y="50">0x1D0</text><text class="mod-sub" x="50" y="67">8 BYTES · 10 ms</text></g></g>
+          <circle class="pulse" cx="250" cy="208" r="8" filter="url(#glow)"/><path class="scanline" d="M25 240H595"/>
+        </svg>
+        <div class="art-foot"><span>CAN 2.0A</span><span>500 kbit/s</span><span>5 MODULES</span></div>
+      </div>
+      <div class="hero-index"><span>01</span><span>BUILT FOR THE SIGNAL HUNTERS</span><span>↘</span></div>
+    </section>
+
+    <section class="ticker" aria-label="SavvyCAN features"><div class="ticker-track"><span>CAPTURE</span><b>✳</b><span>DECODE</span><b>✳</b><span>VISUALIZE</span><b>✳</b><span>REVERSE ENGINEER</span><b>✳</b><span>CAPTURE</span><b>✳</b><span>DECODE</span><b>✳</b><span>VISUALIZE</span><b>✳</b><span>REVERSE ENGINEER</span><b>✳</b></div></section>
+
+    <section id="capabilities" class="capabilities shell section-pad">
+      <div class="section-heading"><div><div class="eyebrow">01 — INSTRUMENTS FOR THE UNKNOWN</div><h2>From raw frames<br>to real insight.</h2></div><p>One workspace for observing traffic, finding patterns, and turning bytes into signals you can understand.</p></div>
+      <div class="feature-grid">
+        <article class="feature feature-large"><div class="feature-number">01 / CAPTURE</div><div class="feature-visual capture-visual"><div class="capture-top"><span>CAN FRAME MONITOR</span><span>● CONNECTED</span></div><div class="frame-row frame-head"><span>TIME</span><span>ID</span><span>BUS</span><span>DATA</span></div><div class="frame-row"><span>12.083421</span><span class="cyan">0x0C1</span><span>0</span><span>00 00 2F <i>8A</i> 00 00 00 00</span></div><div class="frame-row active"><span>12.083433</span><span class="cyan">0x4F1</span><span>0</span><span>2D 08 10 00 40 00 00 00</span></div><div class="frame-row"><span>12.083446</span><span class="cyan">0x2A0</span><span>0</span><span>01 00 00 7C 00 00 00 00</span></div><div class="frame-row"><span>12.083458</span><span class="cyan">0x1D0</span><span>0</span><span>00 18 40 05 00 <i>FF</i> 00 00</span></div><div class="capture-bottom"><span>FRAMES <b>148,392</b></span><span>RATE <b>2,408 /s</b></span><span>BUS LOAD <b class="teal">31.4%</b></span></div></div><div class="feature-text"><h3>Capture without limits.</h3><p>Listen to highly loaded buses and connect to multiple CAN interfaces at once. Work with live traffic or recorded logs.</p></div></article>
+        <article class="feature"><div class="feature-number">02 / INTERPRET</div><div class="feature-visual chart-visual"><div class="chart-title"><span>ENGINE SPEED</span><span class="chart-unit">rpm</span></div><div class="chart-value">2,840 <small>rpm</small></div><svg viewBox="0 0 330 95" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#4ddcc2" stop-opacity=".3"/><stop offset="1" stop-color="#4ddcc2" stop-opacity="0"/></linearGradient></defs><path d="M0 74C20 73 25 52 45 57S75 86 94 63s25-33 45-24 30 35 50 19 35-10 50-21 35 10 45-7 20-11 26-13 13 16 20 7v71H0Z" fill="url(#fill)"/><path d="M0 74C20 73 25 52 45 57S75 86 94 63s25-33 45-24 30 35 50 19 35-10 50-21 35 10 45-7 20-11 26-13 13 16 20 7" fill="none" stroke="#4ddcc2" stroke-width="2"/></svg><div class="chart-axis"><span>12:04:31</span><span>12:04:33</span><span>12:04:35</span><span>12:04:37</span></div><div class="chart-legend"><span><i></i> DBC SIGNAL · RPM</span><span>LIVE</span></div></div><div class="feature-text"><h3>Decode the unknown.</h3><p>Use DBC definitions to turn raw payloads into readable signals, then graph changes over time.</p></div></article>
+        <article class="feature"><div class="feature-number">03 / EXPLORE</div><div class="feature-visual tools-visual"><div class="tool-card"><span class="tool-icon">⌕</span><div><b>Find patterns</b><small>Search · filter · compare</small></div><span class="tool-arrow">↗</span></div><div class="tool-card"><span class="tool-icon">⌁</span><div><b>Inspect protocols</b><small>ISO-TP · UDS · OBD-II</small></div><span class="tool-arrow">↗</span></div><div class="tool-card"><span class="tool-icon">{ }</span><div><b>Extend your workflow</b><small>JavaScript scripting</small></div><span class="tool-arrow">↗</span></div><div class="tool-note">A DEEP TOOLBOX.<br>ONE OPEN PROJECT.</div></div><div class="feature-text"><h3>Follow the signal.</h3><p>Compare captures, inspect timing, scan for coherent data, and extend your workflow with scripts.</p></div></article>
+      </div>
+    </section>
+
+    <section id="workflow" class="workflow section-pad"><div class="shell workflow-inner"><div class="workflow-copy"><div class="eyebrow">02 — YOUR DATA, YOUR WAY</div><h2>Bring a device.<br>Or bring a file.</h2><p>Connect through Qt SerialBus hardware or start with a capture you already have. SavvyCAN works with a broad set of interfaces and log formats.</p><a class="text-link" href="https://github.com/PyKhaled/SavvyCAN/tree/main/help" target="_blank" rel="noreferrer">Browse the user guides <span>↗</span></a></div><div class="workflow-stack"><div class="workflow-card"><div class="workflow-icon">01</div><div><h3>Connect an interface</h3><p>SocketCAN, Vector, PEAK, TinyCAN, and other Qt SerialBus drivers.</p></div><span class="card-mark">↗</span></div><div class="workflow-card"><div class="workflow-icon">02</div><div><h3>Open a capture</h3><p>Vector, BLF, PCAP, CRTD, CSV, GVRET, and more.</p></div><span class="card-mark">↗</span></div><div class="workflow-card"><div class="workflow-icon">03</div><div><h3>Make it meaningful</h3><p>Decode with DBC files, graph signals, and inspect protocol traffic.</p></div><span class="card-mark">↗</span></div><div class="format-note"><span>FILE FORMATS</span><div>ASC <b>/</b> BLF <b>/</b> CSV <b>/</b> DBC <b>/</b> JSONL <b>/</b> PCAP <b>/</b> CRTD <b>/</b> …</div></div></div></div></section>
+
+    <section class="screenshot-section shell"><div class="screenshot-heading"><div><div class="eyebrow">THE WORKSPACE</div><h2>Every frame has a story.</h2></div><span class="mono">SAVVYCAN · LIVE VIEW</span></div><figure class="app-shot"><img src="assets/savvycan-main-screen.png" alt="SavvyCAN main window showing a live CAN frame capture"><figcaption><span>MAIN CAPTURE VIEW</span><span>Inspect IDs, timing, data bytes, and bus filters in one view.</span></figcaption></figure></section>
+
+    <section id="downloads" class="downloads section-pad"><div class="shell downloads-inner"><div><div class="eyebrow">03 — GET STARTED</div><h2>Curiosity is<br>the only prerequisite.</h2><p>Free and open source. Download a build or come see how it works under the hood.</p><div class="download-actions"><a class="button button-primary" href="https://github.com/collin80/SavvyCAN/releases" target="_blank" rel="noreferrer">Browse releases <span>↗</span></a><a class="button button-outline" href="https://github.com/PyKhaled/SavvyCAN" target="_blank" rel="noreferrer">View on GitHub <span>↗</span></a></div></div><div class="download-aside"><div class="aside-orbit"><span>SC</span><i></i><i></i><i></i></div><div class="aside-line"><span>PLATFORM</span><b>Windows · macOS · Linux</b></div><div class="aside-line"><span>LICENSE</span><b>MIT License</b></div><div class="aside-line"><span>COMMUNITY</span><b><a href="https://github.com/collin80/SavvyCAN/discussions" target="_blank" rel="noreferrer">GitHub Discussions ↗</a></b></div></div></div></section>
+  </main>
+
+  <footer class="site-footer shell"><a class="brand footer-brand" href="#top"><img src="assets/savvycan-icon.png" alt=""><span>SAVVY<span class="brand-light">CAN</span></span></a><span>Built for the people who want to know what the bytes mean.</span><div><a href="https://github.com/PyKhaled/SavvyCAN" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/collin80/SavvyCAN/discussions" target="_blank" rel="noreferrer">Discussions ↗</a></div><small>© SavvyCAN · Open source, always.</small></footer>
+</body>
+</html>
